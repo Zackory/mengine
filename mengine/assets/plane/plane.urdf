@@ -21,7 +21,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 -5"/>
       <geometry>
-	 	<box size="30 30 10"/>
+	 	<box size="5000 5000 10"/>
       </geometry>
     </collision>
   </link>

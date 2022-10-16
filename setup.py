@@ -13,7 +13,7 @@ for root, dirs, files in os.walk(directory):
     for fn in files:
         data_files.append(os.path.join(root, fn))
 
-setup(name='assistive-gym',
+setup(name='mengine',
     version='1.0',
     packages=find_packages(),
     python_requires='>=3',

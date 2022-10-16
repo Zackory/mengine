@@ -4,24 +4,16 @@ from screeninfo import get_monitors
 import pybullet as p
 
 from .util import Util
-from .agents import agent
-from .agents.agent import Agent
+from .bodies.body import Body
+from .bodies.panda import Panda
 
-# from .human_creation import HumanCreation
-# from .agents import agent, human, robot, panda, tool, furniture
-# from .agents.agent import Agent
-# from .agents.human import Human
-# from .agents.robot import Robot
-# from .agents.panda import Panda
-# from .agents.tool import Tool
-# from .agents.furniture import Furniture
+envir = None
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
 
-e = None
-
-class Env(gym.Env):
-    def __init__(self, build_ground=True, time_step=0.02, frame_skip=5, gravity=[0, 0, -9.81], render=True, gpu_rendering=False, seed=1001, deformable=False):
-        global e
-        e = self
+class Env:
+    def __init__(self, time_step=0.02, frame_skip=5, gravity=[0, 0, -9.81], render=True, gpu_rendering=False, seed=1001, deformable=False):
+        global envir
+        envir = self
         self.time_step = time_step
         self.frame_skip = frame_skip
         self.gravity = gravity
@@ -31,7 +23,7 @@ class Env(gym.Env):
         self.view_matrix = None
         self.deformable = deformable
         self.seed(seed)
-        self.directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
+        self.directory = directory
         if render:
             self.gui = True
             try:
@@ -43,31 +35,30 @@ class Env(gym.Env):
             self.id = p.connect(p.GUI, options='--background_color_red=0.8 --background_color_green=0.9 --background_color_blue=1.0 --width=%d --height=%d' % (self.width, self.height))
         else:
             self.id = p.connect(p.DIRECT)
-        self.util = Util(self.id, self.np_random)
+        self.util = Util(self.id)
 
         self.agents = []
-        self.ground = Agent()
-        self.camera = None
+        # self.camera = None
 
-        self.reset(build_ground)
+        self.reset()
 
     def seed(self, seed=1001):
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
+        np.random.seed(seed)
+        self.np_random = None
 
     def disconnect(self):
         p.disconnect(self.id)
 
-    def reset(self, build_ground=True):
+    def reset(self):
         if self.deformable:
             p.resetSimulation(p.RESET_USE_DEFORMABLE_WORLD, physicsClientId=self.id)
         else:
             p.resetSimulation(physicsClientId=self.id)
         if self.gpu_rendering:
             self.util.enable_gpu()
-        self.camera = Camera()
+        p.resetDebugVisualizerCamera(cameraDistance=2, cameraYaw=0, cameraPitch=-30, cameraTargetPosition=[0, 0, 0.75], physicsClientId=self.id)
         p.configureDebugVisualizer(p.COV_ENABLE_MOUSE_PICKING, 0, physicsClientId=self.id)
-        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0, physicsClientId=self.id)
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0, lightPosition=[0, 5, 10], physicsClientId=self.id)
         p.setTimeStep(self.time_step, physicsClientId=self.id)
         # Disable real time simulation so that the simulation only advances when we call stepSimulation
         p.setRealTimeSimulation(0, physicsClientId=self.id)
@@ -75,16 +66,10 @@ class Env(gym.Env):
         self.agents = []
         self.last_sim_time = None
         self.iteration = 0
-        if build_ground:
-            # Load the ground plane
-            plane = p.loadURDF(os.path.join(self.directory, 'plane', 'plane.urdf'), physicsClientId=self.id)
-            self.ground.init(plane, self.id, self.np_random, indices=-1)
-            # Randomly set friction of the ground
-            # self.ground.set_frictions(self.ground.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
 
     def create_robot(self, robot_class, controllable_joints='right', fixed_base=True):
         self.robot = robot_class(controllable_joints)
-        self.robot.init(self.directory, self.id, self.np_random, fixed_base=fixed_base)
+        self.robot.init(directory, self.id, self.np_random, fixed_base=fixed_base)
         self.agents.append(self.robot)
         return self.robot
 
@@ -178,9 +163,15 @@ class Env(gym.Env):
         self.last_sim_time = time.time()
 
 
+class Robot:
+    class Panda(Panda):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, orientation, controllable_joints, fixed_base)
+
 class Camera:
     def __init__(self, camera_pos=[0.5, -0.5, 1.5], look_at_pos=[0, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4, env=None):
-        self.env = env if env is not None else e
+        self.env = env if env is not None else envir
         self.fov = fov
         self.camera_width = camera_width
         self.camera_height = camera_height
@@ -198,15 +189,15 @@ class Camera:
         return img, depth
 
 def get_rgba_depth(light_pos=[0, -3, 1], shadow=False, ambient=0.8, diffuse=0.3, specular=0.1, env=None):
-    env = env if env is not None else e
+    env = env if env is not None else envir
     return env.camera.get_rgba_depth(light_pos=light_pos, shadow=shadow, ambient=ambient, diffuse=diffuse, specular=specular)
 
 def get_euler(quaternion, env=None):
-    env = env if env is not None else e
+    env = env if env is not None else envir
     return np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=env.id))
 
 def get_quaternion(euler, env=None):
-    env = env if env is not None else e
+    env = env if env is not None else envir
     return np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=env.id))
 
 
@@ -224,39 +215,37 @@ class Sphere(Obj):
     def __init__(self, radius=1):
         super().__init__(type=p.GEOM_SPHERE, radius=radius)
 
-class Box:
+class Box(Obj):
     def __init__(self, half_extents=[1, 1, 1]):
         super().__init__(type=p.GEOM_BOX, half_extents=half_extents)
 
-class Capsule:
+class Capsule(Obj):
     def __init__(self, radius=1, length=1):
         super().__init__(type=p.GEOM_CAPSULE, radius=radius, length=length)
 
-class Cylinder:
+class Cylinder(Obj):
     def __init__(self, radius=1, length=1):
         super().__init__(type=p.GEOM_CYLINDER, radius=radius, length=length)
 
-class Plane:
+class Plane(Obj):
     def __init__(self, normal=[0, 0, 1]):
         super().__init__(type=p.GEOM_PLANE, normal=normal)
 
-class Mesh:
+class Mesh(Obj):
     def __init__(self, filename='', scale=[1, 1, 1]):
         super().__init__(type=p.GEOM_MESH, filename=filename, scale=scale)
 
 def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, env=None):
-    env = env if env is not None else e
+    env = env if env is not None else envir
     collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, physicsClientId=env.id) if collision else -1
     visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
         return collision, visual
     body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=orientation, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
-    s = Agent()
-    s.init(body, env.id, env.np_random, indices=-1)
-    return s
+    return Body(body, env)
 
 def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, env=None):
-    env = env if env is not None else e
+    env = env if env is not None else envir
     collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, physicsClientId=env.id) if collision else -1
     visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
@@ -264,8 +253,17 @@ def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0,
     shape_ids = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=positions[0], baseOrientation=orientation, batchPositions=positions, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
     shapes = []
     for body in shape_ids:
-        s = Agent()
-        s.init(body, env.id, env.np_random, indices=-1)
-        shapes.append(s)
+        shapes.append(Body(body, env))
     return shapes
+
+def URDF(filename, static=False, position=[0, 0, 0], orientation=[0, 0, 0, 1], maximal_coordinates=False, env=None):
+    env = env if env is not None else envir
+    body = p.loadURDF(filename, basePosition=position, baseOrientation=orientation, useMaximalCoordinates=maximal_coordinates, useFixedBase=static, physicsClientId=env.id)
+    return Body(body, env)
+
+def Ground(position=[0, 0, 0], orientation=[0, 0, 0, 1], env=None):
+    env = env if env is not None else envir
+    return URDF(filename=os.path.join(directory, 'plane', 'plane.urdf'), static=True, position=position, orientation=orientation, env=env)
+    # Randomly set friction of the ground
+    # self.ground.set_frictions(self.ground.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
 

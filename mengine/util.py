@@ -3,9 +3,8 @@ import numpy as np
 import pybullet as p
 
 class Util:
-    def __init__(self, pid, np_random):
+    def __init__(self, pid):
         self.id = pid
-        self.np_random = np_random
 
     def enable_gpu(self):
         import GPUtil as GPU
