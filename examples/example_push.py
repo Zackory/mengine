@@ -1,6 +1,5 @@
-import os, time
+import os
 import numpy as np
-import pybullet as p
 import mengine as m
 
 env = m.Env()
@@ -26,7 +25,7 @@ def reset(position, table_friction=0.5, cube_mass=100, cube_friction=0.5):
     target_joint_angles = robot.ik(robot.end_effector, target_pos=position, target_orient=orient)
     robot.control(target_joint_angles)
     robot.set_joint_angles(target_joint_angles)
-    return robot
+    return robot, cube
 
 scenarios = [dict(position=np.array([0.3, 0, 0.95]), table_friction=0.5, cube_mass=100, cube_friction=0.5, robot_force=50)]
 scenarios.append(dict(position=np.array([0.3, 0, 0.95]), table_friction=0.5, cube_mass=100, cube_friction=0.5, robot_force=100))
@@ -38,14 +37,21 @@ scenarios.append(dict(position=np.array([0.3, 0.05, 0.95]), table_friction=0.5, 
 
 for s in scenarios:
     pos = s['position']
-    robot = reset(s['position'], s['table_friction'], s['cube_mass'], s['cube_friction'])
+    robot, cube = reset(s['position'], s['table_friction'], s['cube_mass'], s['cube_friction'])
 
-    for i in range(500):
+    for i in range(300):
+        # Move the end effector to the left along a linear trajectory
         if pos[0] > -0.2:
-            pos += np.array([-0.002, 0, 0])
+            pos += np.array([-0.0025, 0, 0])
         target_joint_angles = robot.ik(robot.end_effector, target_pos=pos, target_orient=orient, use_current_joint_angles=True)
         robot.control(target_joint_angles, forces=s['robot_force'])
 
-        p.stepSimulation(physicsClientId=env.id)
-        env.slow_time()
+        m.step_simulation()
+
+        cp = robot.get_contact_points(bodyB=cube)
+        # print([c['normal_force'] for c in cp])
+        m.clear_all_visual_items()
+        if len(cp) > 0:
+            for c in cp:
+                line = m.Line(c['posB'], np.array(c['posB']) + np.array(c['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=None)
 

@@ -14,3 +14,6 @@ class Robot(Body):
         #     self.controllable_joint_upper_limits[:len(self.wheel_joint_indices)] = np.inf
         super().__init__(body, env, controllable_joints)
 
+    def set_gripper_position(self, positions, set_instantly=False, force=500):
+        self.control(positions, joints=self.gripper_joints, gains=np.array([0.05]*len(self.gripper_joints)), forces=[force]*len(self.gripper_joints), velocity_control=False, set_instantly=set_instantly)
+

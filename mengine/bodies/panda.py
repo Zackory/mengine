@@ -12,3 +12,6 @@ class Panda(Robot):
         body = p.loadURDF(os.path.join(env.directory, 'panda', 'panda.urdf'), useFixedBase=fixed_base, basePosition=position, baseOrientation=orientation, physicsClientId=env.id)
         super().__init__(body, env, controllable_joints, end_effector, gripper_joints)
 
+        # Close gripper
+        self.set_gripper_position([0]*2, set_instantly=True)
+

@@ -1,6 +1,5 @@
-import os, time
+import os
 import numpy as np
-import pybullet as p
 import mengine as m
 
 env = m.Env()
@@ -25,7 +24,7 @@ cf = None
 
 # while True:
 for i in range(1000):
-    pos = [0, 0, 0.8] if (i % 200) < 100 else [0, 0, 1.2]
+    pos = [0.2, 0.2, 0.9] if (i % 200) < 100 else [0, 0, 1.2]
     target_joint_angles = robot.ik(robot.end_effector, target_pos=pos, target_orient=orient, use_current_joint_angles=True)
     robot.control(target_joint_angles)
 
@@ -33,8 +32,6 @@ for i in range(1000):
     position, orientation = robot.get_link_pos_orient(robot.end_effector)
     cf = m.visualize_coordinate_frame(position, orientation, replace_old_cf=cf)
 
-    p.stepSimulation(physicsClientId=env.id)
-    env.slow_time()
-    # time.sleep(3)
+    m.step_simulation()
 
 

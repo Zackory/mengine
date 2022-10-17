@@ -21,7 +21,7 @@ class Body:
             self.update_joint_limits()
             self.enforce_joint_limits()
 
-    def control(self, targets, joints=None, gains=None, forces=None, velocity_control=False):
+    def control(self, targets, joints=None, gains=None, forces=None, velocity_control=False, set_instantly=False):
         joints = self.controllable_joints if joints is None else joints
         gains = self.motor_gains if gains is None else gains
         forces = self.motor_forces if forces is None else forces
@@ -31,10 +31,10 @@ class Body:
             forces = [forces]*len(joints)
         if not velocity_control:
             p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=targets, positionGains=gains, forces=forces, physicsClientId=self.id)
-            # p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=targets, physicsClientId=self.id)
         else:
             p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.VELOCITY_CONTROL, targetVelocities=targets, velocityGains=gains, forces=forces, physicsClientId=self.id)
-            # p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.VELOCITY_CONTROL, targetVelocities=targets, physicsClientId=self.id)
+        if set_instantly:
+            self.set_joint_angles(targets, joints=joints, use_limits=True)
 
     def get_joint_angles(self, joints=None):
         if joints is None:
@@ -125,13 +125,8 @@ class Body:
             args['linkIndexB'] = linkB
         cp = p.getContactPoints(**args)
         if cp is None:
-            return [], [], [], [], []
-        linkA = [c[3] for c in cp]
-        linkB = [c[4] for c in cp]
-        posA = [c[5] for c in cp]
-        posB = [c[6] for c in cp]
-        force = [c[9] for c in cp]
-        return linkA, linkB, posA, posB, force
+            return []
+        return [dict(bodyA=c[1], bodyB=c[2], linkA=c[3], linkB=c[4], posA=c[5], posB=c[6], contact_normal=c[7], contact_distance=c[8], normal_force=c[9], lateral_friction_1=c[10], lateral_friction_dir_1=c[11], lateral_friction_2=c[12], lateral_friction_dir_2=c[13]) for c in cp]
 
     def get_closest_points(self, bodyB, distance=4.0, linkA=None, linkB=None):
         args = dict(bodyA=self.body, bodyB=bodyB.body, distance=distance, physicsClientId=self.id)
@@ -217,6 +212,12 @@ class Body:
 
     def enable_force_torque_sensor(self, joint):
         p.enableJointForceTorqueSensor(self.body, joint, enableSensor=True, physicsClientId=self.id)
+
+    def apply_external_force(self, link=-1, force=[0,0,0], pos=[0,0,0], local_coordinate_frame=False):
+        p.applyExternalForce(self.body, link, force, pos, p.LINK_FRAME if local_coordinate_frame else p.WORLD_FRAME, physicsClientId=self.id)
+
+    def apply_external_torque(self, link=-1, torque=[0,0,0], pos=[0,0,0], local_coordinate_frame=False):
+        p.applyExternalTorque(self.body, link, torque, pos, p.LINK_FRAME if local_coordinate_frame else p.WORLD_FRAME, physicsClientId=self.id)
 
     def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0]):
         if len(parent_orient) < 4:
