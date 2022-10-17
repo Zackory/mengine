@@ -10,3 +10,12 @@ git clone https://github.com/Zackory/mengine.git
 cd mengine
 pip3 install -e .
 ```
+
+## Example
+```bash
+cd examples
+python3 example_push.py
+```
+
+![Manipulation Engine](images/mengine.jpg "Manipulation Engine")
+
