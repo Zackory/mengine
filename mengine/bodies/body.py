@@ -10,6 +10,8 @@ class Body:
         self.ik_upper_limits = None
         self.ik_joint_names = None
         self.ik_indices = None
+        self.motor_gains = 0.05
+        self.motor_forces = 50.0
 
         self.body = body
         self.id = env.id
@@ -19,15 +21,20 @@ class Body:
             self.update_joint_limits()
             self.enforce_joint_limits()
 
-    def control(self, joints, target_angles, gains, forces, velocity_control=False):
+    def control(self, targets, joints=None, gains=None, forces=None, velocity_control=False):
+        joints = self.controllable_joints if joints is None else joints
+        gains = self.motor_gains if gains is None else gains
+        forces = self.motor_forces if forces is None else forces
         if type(gains) in [int, float, np.float64, np.float32]:
             gains = [gains]*len(joints)
         if type(forces) in [int, float, np.float64, np.float32]:
             forces = [forces]*len(joints)
         if not velocity_control:
-            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=target_angles, positionGains=gains, forces=forces, physicsClientId=self.id)
+            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=targets, positionGains=gains, forces=forces, physicsClientId=self.id)
+            # p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=targets, physicsClientId=self.id)
         else:
-            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.VELOCITY_CONTROL, targetVelocities=target_angles, velocityGains=gains, forces=forces, physicsClientId=self.id)
+            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.VELOCITY_CONTROL, targetVelocities=targets, velocityGains=gains, forces=forces, physicsClientId=self.id)
+            # p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.VELOCITY_CONTROL, targetVelocities=targets, physicsClientId=self.id)
 
     def get_joint_angles(self, joints=None):
         if joints is None:
@@ -48,7 +55,7 @@ class Body:
     def get_joint_angles_dict(self, joints=None):
         return {j: a for j, a in zip(joints, self.get_joint_angles(joints))}
 
-    def get_link_pos_orient(self, link, center_of_mass=False, convert_to_realworld=False):
+    def get_link_pos_orient(self, link, center_of_mass=False, local_coordinate_frame=False):
         # Get the 3D position and orientation (4D quaternion) of a specific link on the body
         if link == self.base:
             pos, orient = p.getBasePositionAndOrientation(self.body, physicsClientId=self.id)
@@ -57,12 +64,12 @@ class Body:
                 pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[4:6]
             else:
                 pos, orient = p.getLinkState(self.body, link, computeForwardKinematics=True, physicsClientId=self.id)[:2]
-        if convert_to_realworld:
-            return self.convert_to_realworld(pos, orient)
+        if local_coordinate_frame:
+            return self.convert_to_local_coordinate_frame(pos, orient)
         else:
             return np.array(pos), np.array(orient)
 
-    def convert_to_realworld(self, pos, orient=[0, 0, 0, 1]):
+    def convert_to_local_coordinate_frame(self, pos, orient=[0, 0, 0, 1]):
         base_pos, base_orient = self.get_base_pos_orient()
         base_pos_inv, base_orient_inv = p.invertTransform(base_pos, base_orient, physicsClientId=self.id)
         real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, orient if len(orient) == 4 else self.get_quaternion(orient), physicsClientId=self.id)
@@ -162,7 +169,8 @@ class Body:
     def set_base_velocity(self, linear_velocity, angular_velocity):
         p.resetBaseVelocity(self.body, linearVelocity=linear_velocity, angularVelocity=angular_velocity, physicsClientId=self.id)
 
-    def set_joint_angles(self, joints, angles, use_limits=True, velocities=0):
+    def set_joint_angles(self, angles, joints=None, use_limits=True, velocities=0):
+        joints = self.controllable_joints if joints is None else joints
         for i, (j, a) in enumerate(zip(joints, angles)):
             p.resetJointState(self.body, jointIndex=j, targetValue=min(max(a, self.lower_limits[j]), self.upper_limits[j]) if use_limits else a, targetVelocity=velocities if type(velocities) in [int, float] else velocities[i], physicsClientId=self.id)
 
@@ -177,7 +185,7 @@ class Body:
         self.set_joint_angles(self.all_joints, [0]*len(self.all_joints))
 
     def set_whole_body_frictions(self, lateral_friction=None, spinning_friction=None, rolling_friction=None):
-        self.set_frictions(self.all_joints, lateral_friction, spinning_friction, rolling_friction)
+        self.set_frictions(self.all_joints + [self.base], lateral_friction, spinning_friction, rolling_friction)
 
     def set_frictions(self, links, lateral_friction=None, spinning_friction=None, rolling_friction=None):
         if type(links) == int:
@@ -270,27 +278,29 @@ class Body:
             elif joint_angles[j] > self.upper_limits[j]:
                 p.resetJointState(self.body, jointIndex=j, targetValue=self.upper_limits[j], targetVelocity=0, physicsClientId=self.id)
 
-    def ik(self, target_joint, target_pos, target_orient, ik_indices, max_iterations=1000, use_current_as_rest=False, randomize_limits=False):
+    def ik(self, target_joint, target_pos, target_orient=None, max_iterations=1000, use_current_joint_angles=False, randomize_limits=False):
         if target_orient is not None and len(target_orient) < 4:
             target_orient = self.get_quaternion(target_orient)
-        ik_lower_limits = self.ik_lower_limits if not randomize_limits else self.np_random.uniform(0, self.ik_lower_limits)
-        ik_upper_limits = self.ik_upper_limits if not randomize_limits else self.np_random.uniform(0, self.ik_upper_limits)
+        ik_lower_limits = self.ik_lower_limits if not randomize_limits else np.random.uniform(0, self.ik_lower_limits)
+        ik_upper_limits = self.ik_upper_limits if not randomize_limits else np.random.uniform(0, self.ik_upper_limits)
         ik_joint_ranges = ik_upper_limits - ik_lower_limits
-        if use_current_as_rest:
+        if use_current_joint_angles:
             ik_rest_poses = np.array(self.get_motor_joint_states()[1])
         else:
-            ik_rest_poses = self.np_random.uniform(ik_lower_limits, ik_upper_limits)
+            ik_rest_poses = np.random.uniform(ik_lower_limits, ik_upper_limits)
 
         # print('JPO:', target_joint, target_pos, target_orient)
         # print('Lower:', self.ik_lower_limits)
         # print('Upper:', self.ik_upper_limits)
         # print('Range:', ik_joint_ranges)
         # print('Rest:', ik_rest_poses)
+
         if target_orient is not None:
             ik_joint_poses = np.array(p.calculateInverseKinematics(self.body, target_joint, targetPosition=target_pos, targetOrientation=target_orient, lowerLimits=ik_lower_limits.tolist(), upperLimits=ik_upper_limits.tolist(), jointRanges=ik_joint_ranges.tolist(), restPoses=ik_rest_poses.tolist(), maxNumIterations=max_iterations, physicsClientId=self.id))
         else:
             ik_joint_poses = np.array(p.calculateInverseKinematics(self.body, target_joint, targetPosition=target_pos, lowerLimits=ik_lower_limits.tolist(), upperLimits=ik_upper_limits.tolist(), jointRanges=ik_joint_ranges.tolist(), restPoses=ik_rest_poses.tolist(), maxNumIterations=max_iterations, physicsClientId=self.id))
-        return ik_joint_poses[ik_indices]
+
+        return ik_joint_poses[self.ik_indices]
 
     def print_joint_info(self, show_fixed=True):
         joint_names = []

@@ -64,7 +64,7 @@ class Env:
         p.setRealTimeSimulation(0, physicsClientId=self.id)
         p.setGravity(self.gravity[0], self.gravity[1], self.gravity[2], physicsClientId=self.id)
         self.agents = []
-        self.last_sim_time = None
+        self.last_sim_time = time.time()
         self.iteration = 0
 
     def create_robot(self, robot_class, controllable_joints='right', fixed_base=True):
@@ -266,4 +266,27 @@ def Ground(position=[0, 0, 0], orientation=[0, 0, 0, 1], env=None):
     return URDF(filename=os.path.join(directory, 'plane', 'plane.urdf'), static=True, position=position, orientation=orientation, env=env)
     # Randomly set friction of the ground
     # self.ground.set_frictions(self.ground.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
+
+
+def Line(start, end, rgb=[1, 0, 0], width=0.01, replace_line=None, env=None):
+    env = env if env is not None else envir
+    line = -1
+    while line < 0:
+        if replace_line is None:
+            line = p.addUserDebugLine(lineFromXYZ=start, lineToXYZ=end, lineColorRGB=rgb, lineWidth=width, lifeTime=0, physicsClientId=env.id)
+        else:
+            line = p.addUserDebugLine(lineFromXYZ=start, lineToXYZ=end, lineColorRGB=rgb, lineWidth=width, lifeTime=0, replaceItemUniqueId=replace_line, physicsClientId=env.id)
+    return line
+
+def visualize_coordinate_frame(position=[0, 0, 0], orientation=[0, 0, 0, 1], replace_old_cf=None, env=None):
+    env = env if env is not None else envir
+    if position[-1] == 0:
+        position[-1] = 0.01
+    transform = lambda pos: p.multiplyTransforms(position, orientation if len(orientation) == 4 else get_quaternion(orientation), pos, [0, 0, 0, 1], physicsClientId=env.id)[0]
+    x = Line(start=transform([0, 0, 0]), end=transform([0.2, 0, 0]), rgb=[1, 0, 0], replace_line=None if replace_old_cf is None else replace_old_cf[0])
+    y = Line(start=transform([0, 0, 0]), end=transform([0, 0.2, 0]), rgb=[0, 1, 0], replace_line=None if replace_old_cf is None else replace_old_cf[1])
+    z = Line(start=transform([0, 0, 0]), end=transform([0, 0, 0.2]), rgb=[0, 0, 1], replace_line=None if replace_old_cf is None else replace_old_cf[2])
+    return x, y, z
+
+
 
