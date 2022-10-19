@@ -59,9 +59,7 @@ class Env:
         # Disable real time simulation so that the simulation only advances when we call stepSimulation
         p.setRealTimeSimulation(0, physicsClientId=self.id)
         p.setGravity(self.gravity[0], self.gravity[1], self.gravity[2], physicsClientId=self.id)
-        self.agents = []
         self.last_sim_time = time.time()
-        self.iteration = 0
 
     def slow_time(self):
         # Slow down time so that the simulation matches real time
@@ -203,9 +201,15 @@ def visualize_coordinate_frame(position=[0, 0, 0], orientation=[0, 0, 0, 1], rep
     z = Line(start=transform([0, 0, 0]), end=transform([0, 0, 0.2]), rgb=[0, 0, 1], replace_line=None if replace_old_cf is None else replace_old_cf[2])
     return x, y, z
 
-def clear_visual_item(item, env=None):
+def clear_visual_item(items, env=None):
+    if items is None:
+        return
     env = env if env is not None else envir
-    p.removeUserDebugItem(item, physicsClientId=env.id)
+    if type(items) in (list, tuple):
+        for item in items:
+            p.removeUserDebugItem(item, physicsClientId=env.id)
+    else:
+        p.removeUserDebugItem(items, physicsClientId=env.id)
 
 def clear_all_visual_items(env=None):
     env = env if env is not None else envir
