@@ -11,11 +11,10 @@ envir = None
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
 
 class Env:
-    def __init__(self, time_step=0.02, frame_skip=1, gravity=[0, 0, -9.81], render=True, gpu_rendering=False, seed=1001, deformable=False):
+    def __init__(self, time_step=0.02, gravity=[0, 0, -9.81], render=True, gpu_rendering=False, seed=1001, deformable=False):
         global envir
         envir = self
         self.time_step = time_step
-        self.frame_skip = frame_skip
         self.gravity = gravity
         self.id = None
         self.render = render
@@ -68,9 +67,9 @@ class Env:
             time.sleep(self.time_step - t)
         self.last_sim_time = time.time()
 
-def step_simulation(realtime=True, env=None):
+def step_simulation(steps=1, realtime=True, env=None):
     env = env if env is not None else envir
-    for _ in range(env.frame_skip):
+    for _ in range(steps):
         p.stepSimulation(physicsClientId=env.id)
         if realtime and env.render:
             env.slow_time()
@@ -191,10 +190,26 @@ def Line(start, end, rgb=[1, 0, 0], width=0.01, replace_line=None, env=None):
             line = p.addUserDebugLine(lineFromXYZ=start, lineToXYZ=end, lineColorRGB=rgb, lineWidth=width, lifeTime=0, replaceItemUniqueId=replace_line, physicsClientId=env.id)
     return line
 
+def Points(point_positions, points_rgb=[1, 0, 0], size=0.5, replace_points=None, env=None):
+    env = env if env is not None else envir
+    if type(point_positions[0]) not in (list, tuple):
+        point_positions = [point_positions]
+    if type(points_rgb[0]) not in (list, tuple):
+        points_rgb = [points_rgb]*len(point_positions)
+    points = -1
+    while points < 0:
+        if replace_points is None:
+            points = p.addUserDebugPoints(pointPositions=point_positions, pointColorsRGB=points_rgb, pointSize=size, lifeTime=0, physicsClientId=env.id)
+        else:
+            points = p.addUserDebugPoints(pointPositions=point_positions, pointColorsRGB=points_rgb, pointSize=size, lifeTime=0, replaceItemUniqueId=replace_points, physicsClientId=env.id)
+    return points
+
 def visualize_coordinate_frame(position=[0, 0, 0], orientation=[0, 0, 0, 1], replace_old_cf=None, env=None):
     env = env if env is not None else envir
     if position[-1] == 0:
         position[-1] = 0.01
+    # if replace_old_cf is not None:
+    #     clear_visual_item(replace_old_cf)
     transform = lambda pos: p.multiplyTransforms(position, orientation if len(orientation) == 4 else get_quaternion(orientation), pos, [0, 0, 0, 1], physicsClientId=env.id)[0]
     x = Line(start=transform([0, 0, 0]), end=transform([0.2, 0, 0]), rgb=[1, 0, 0], replace_line=None if replace_old_cf is None else replace_old_cf[0])
     y = Line(start=transform([0, 0, 0]), end=transform([0, 0.2, 0]), rgb=[0, 1, 0], replace_line=None if replace_old_cf is None else replace_old_cf[1])

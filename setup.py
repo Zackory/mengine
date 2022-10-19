@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'mengine'))
 # with open("README.md", "r") as f:
 #     long_description = f.read()
 
-directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mengine', 'envs', 'assets')
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mengine', 'assets')
 data_files = []
 
 for root, dirs, files in os.walk(directory):

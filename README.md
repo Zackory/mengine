@@ -2,6 +2,11 @@
 
 ## Install
 ```bash
+python3 -m pip install mengine@git+https://github.com/Zackory/mengine.git
+```
+
+## Install with a virtualenv
+```bash
 python3 -m pip install --user virtualenv
 python3 -m venv env
 source env/bin/activate
