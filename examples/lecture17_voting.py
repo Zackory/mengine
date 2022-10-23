@@ -37,7 +37,6 @@ for i in range(1000):
     m.step_simulation()
 
     cp = robot.get_contact_points(bodyB=cube, average=True)
-    # m.clear_all_visual_items()
     if cp is not None:
         # Create our friction cone by rotating contact normal (a) around lateral friction dir 2 (b)
         # See for equation: https://math.stackexchange.com/questions/511370/how-to-rotate-one-vector-about-another
@@ -50,6 +49,8 @@ for i in range(1000):
         a_proj_b = a_b_angle + a_parallel_b
         a_b_angle2 = np.linalg.norm(a_perp_b) * ((np.cos(-cone_angle)/np.linalg.norm(a_perp_b))*a_perp_b + (np.sin(-cone_angle)/np.linalg.norm(w))*w)
         a_proj_b2 = a_b_angle2 + a_parallel_b
+
+        # Visualize friction cone, contact normals, and friction directions
         line1 = m.Line(cp['posB'], np.array(cp['posB']) - np.array(cp['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=line1)
         line2 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_1'])*0.2, rgb=[0, 1, 0], replace_line=line2)
         line3 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_2'])*0.2, rgb=[0, 0, 1], replace_line=line3)
