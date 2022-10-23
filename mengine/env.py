@@ -79,7 +79,7 @@ class Robot:
     class Panda(Panda):
         def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
             env = env if env is not None else envir
-            super().__init__(env, position, orientation, controllable_joints, fixed_base)
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
 
 class Camera:
     def __init__(self, camera_pos=[0.5, -0.5, 1.5], look_at_pos=[0, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4, env=None):
@@ -106,11 +106,11 @@ def get_rgba_depth(light_pos=[0, -3, 1], shadow=False, ambient=0.8, diffuse=0.3,
 
 def get_euler(quaternion, env=None):
     env = env if env is not None else envir
-    return np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=env.id))
+    return np.array(quaternion) if len(quaternion) == 3 else np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=env.id))
 
 def get_quaternion(euler, env=None):
     env = env if env is not None else envir
-    return np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=env.id))
+    return np.array(euler) if len(euler) == 4 else np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=env.id))
 
 
 class Obj:
@@ -153,7 +153,7 @@ def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 
     visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
         return collision, visual
-    body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=orientation, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
+    body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=get_quaternion(orientation), useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
     return Body(body, env)
 
 def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, env=None):
@@ -162,7 +162,7 @@ def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0,
     visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
         return collision, visual
-    shape_ids = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=positions[0], baseOrientation=orientation, batchPositions=positions, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
+    shape_ids = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=positions[0], baseOrientation=get_quaternion(orientation), batchPositions=positions, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
     shapes = []
     for body in shape_ids:
         shapes.append(Body(body, env))
@@ -170,12 +170,12 @@ def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0,
 
 def URDF(filename, static=False, position=[0, 0, 0], orientation=[0, 0, 0, 1], maximal_coordinates=False, env=None):
     env = env if env is not None else envir
-    body = p.loadURDF(filename, basePosition=position, baseOrientation=orientation, useMaximalCoordinates=maximal_coordinates, useFixedBase=static, physicsClientId=env.id)
+    body = p.loadURDF(filename, basePosition=position, baseOrientation=get_quaternion(orientation), useMaximalCoordinates=maximal_coordinates, useFixedBase=static, physicsClientId=env.id)
     return Body(body, env)
 
 def Ground(position=[0, 0, 0], orientation=[0, 0, 0, 1], env=None):
     env = env if env is not None else envir
-    return URDF(filename=os.path.join(directory, 'plane', 'plane.urdf'), static=True, position=position, orientation=orientation, env=env)
+    return URDF(filename=os.path.join(directory, 'plane', 'plane.urdf'), static=True, position=position, orientation=get_quaternion(orientation), env=env)
     # Randomly set friction of the ground
     # self.ground.set_frictions(self.ground.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
 
@@ -210,7 +210,7 @@ def visualize_coordinate_frame(position=[0, 0, 0], orientation=[0, 0, 0, 1], rep
         position[-1] = 0.01
     # if replace_old_cf is not None:
     #     clear_visual_item(replace_old_cf)
-    transform = lambda pos: p.multiplyTransforms(position, orientation if len(orientation) == 4 else get_quaternion(orientation), pos, [0, 0, 0, 1], physicsClientId=env.id)[0]
+    transform = lambda pos: p.multiplyTransforms(position, get_quaternion(orientation), pos, [0, 0, 0, 1], physicsClientId=env.id)[0]
     x = Line(start=transform([0, 0, 0]), end=transform([0.2, 0, 0]), rgb=[1, 0, 0], replace_line=None if replace_old_cf is None else replace_old_cf[0])
     y = Line(start=transform([0, 0, 0]), end=transform([0, 0.2, 0]), rgb=[0, 1, 0], replace_line=None if replace_old_cf is None else replace_old_cf[1])
     z = Line(start=transform([0, 0, 0]), end=transform([0, 0, 0.2]), rgb=[0, 0, 1], replace_line=None if replace_old_cf is None else replace_old_cf[2])

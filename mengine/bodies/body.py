@@ -72,30 +72,33 @@ class Body:
     def global_to_local_coordinate_frame(self, pos, orient=[0, 0, 0, 1]):
         base_pos, base_orient = self.get_base_pos_orient()
         base_pos_inv, base_orient_inv = p.invertTransform(base_pos, base_orient, physicsClientId=self.id)
-        real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, orient if len(orient) == 4 else self.get_quaternion(orient), physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, self.get_quaternion(orient), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
     def local_to_global_coordinate_frame(self, pos, orient=[0, 0, 0, 1]):
         base_pos, base_orient = self.get_base_pos_orient()
-        real_pos, real_orient = p.multiplyTransforms(base_pos, base_orient, pos, orient if len(orient) == 4 else self.get_quaternion(orient), physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(base_pos, base_orient, pos, self.get_quaternion(orient), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
     def get_base_pos_orient(self):
         return self.get_link_pos_orient(self.base)
 
     def get_link_velocity(self, link):
-        if link == self.base:
-            return np.array(p.getBaseVelocity(self.body, physicsClientId=self.id)[0])
+        # if link == self.base:
+        #     return np.array(p.getBaseVelocity(self.body, physicsClientId=self.id)[0])
         return np.array(p.getLinkState(self.body, link, computeForwardKinematics=True, computeLinkVelocity=True, physicsClientId=self.id)[6])
 
-    def get_base_velocity(self):
+    def get_base_linear_velocity(self):
         return np.array(p.getBaseVelocity(self.body, physicsClientId=self.id)[0])
 
+    def get_base_angular_velocity(self):
+        return np.array(p.getBaseVelocity(self.body, physicsClientId=self.id)[1])
+
     def get_euler(self, quaternion):
-        return np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=self.id))
+        return np.array(quaternion) if len(quaternion) == 3 else np.array(p.getEulerFromQuaternion(np.array(quaternion), physicsClientId=self.id))
 
     def get_quaternion(self, euler):
-        return np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=self.id))
+        return np.array(euler) if len(euler) == 4 else np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=self.id))
 
     def get_link_mass(self, link):
         return p.getDynamicsInfo(self.body, link, physicsClientId=self.id)[0]
@@ -123,7 +126,7 @@ class Body:
         joint_infos = [p.getJointInfo(self.body, i, physicsClientId=self.id) for i in joints]
         return [j[6] for j in joint_infos]
 
-    def get_contact_points(self, bodyB=None, linkA=None, linkB=None):
+    def get_contact_points(self, bodyB=None, linkA=None, linkB=None, average=False):
         args = dict(bodyA=self.body, physicsClientId=self.id)
         if bodyB is not None:
             args['bodyB'] = bodyB.body
@@ -132,8 +135,12 @@ class Body:
         if linkB is not None:
             args['linkIndexB'] = linkB
         cp = p.getContactPoints(**args)
-        if cp is None:
-            return []
+        if cp is None or len(cp) == 0:
+            return None
+        if average and bodyB is not None:
+            # Average all contact points together.
+            avg = lambda i, absolute=False: np.mean([(abs(c[i]) if absolute else c[i]) for c in cp], axis=0)
+            return dict(bodyA=cp[0][1], bodyB=cp[0][2], linkA=cp[0][3], linkB=cp[0][4], posA=avg(5), posB=avg(6), contact_normal=avg(7), contact_distance=avg(8), normal_force=avg(9, True), lateral_friction_1=avg(10, True), lateral_friction_dir_1=avg(11), lateral_friction_2=avg(12, True), lateral_friction_dir_2=avg(13))
         return [dict(bodyA=c[1], bodyB=c[2], linkA=c[3], linkB=c[4], posA=c[5], posB=c[6], contact_normal=c[7], contact_distance=c[8], normal_force=abs(c[9]), lateral_friction_1=abs(c[10]), lateral_friction_dir_1=c[11], lateral_friction_2=abs(c[12]), lateral_friction_dir_2=c[13]) for c in cp]
 
     def get_resultant_contact_forces(self, bodyB=None, linkA=None, linkB=None):
@@ -180,7 +187,7 @@ class Body:
         return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
 
     def set_base_pos_orient(self, pos, orient=[0, 0, 0, 1]):
-        p.resetBasePositionAndOrientation(self.body, pos, orient if len(orient) == 4 else self.get_quaternion(orient), physicsClientId=self.id)
+        p.resetBasePositionAndOrientation(self.body, pos, self.get_quaternion(orient), physicsClientId=self.id)
 
     def set_base_velocity(self, linear_velocity, angular_velocity=[0, 0, 0]):
         p.resetBaseVelocity(self.body, linearVelocity=linear_velocity, angularVelocity=angular_velocity, physicsClientId=self.id)
@@ -241,11 +248,7 @@ class Body:
         p.applyExternalTorque(self.body, link, torque, pos, p.LINK_FRAME if local_coordinate_frame else p.WORLD_FRAME, physicsClientId=self.id)
 
     def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0]):
-        if len(parent_orient) < 4:
-            parent_orient = self.get_quaternion(parent_orient)
-        if len(child_orient) < 4:
-            child_orient = self.get_quaternion(child_orient)
-        return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, parent_orient, child_orient, physicsClientId=self.id)
+        return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, self.get_quaternion(parent_orient), self.get_quaternion(child_orient), physicsClientId=self.id)
 
     def update_joint_limits(self, joints=None):
         if joints is None:
@@ -301,8 +304,6 @@ class Body:
                 p.resetJointState(self.body, jointIndex=j, targetValue=self.upper_limits[j], targetVelocity=0, physicsClientId=self.id)
 
     def ik(self, target_joint, target_pos, target_orient=None, max_iterations=1000, use_current_joint_angles=False, randomize_limits=False):
-        if target_orient is not None and len(target_orient) < 4:
-            target_orient = self.get_quaternion(target_orient)
         ik_lower_limits = self.ik_lower_limits if not randomize_limits else np.random.uniform(0, self.ik_lower_limits)
         ik_upper_limits = self.ik_upper_limits if not randomize_limits else np.random.uniform(0, self.ik_upper_limits)
         ik_joint_ranges = ik_upper_limits - ik_lower_limits
@@ -318,7 +319,7 @@ class Body:
         # print('Rest:', ik_rest_poses)
 
         if target_orient is not None:
-            ik_joint_poses = np.array(p.calculateInverseKinematics(self.body, target_joint, targetPosition=target_pos, targetOrientation=target_orient, lowerLimits=ik_lower_limits.tolist(), upperLimits=ik_upper_limits.tolist(), jointRanges=ik_joint_ranges.tolist(), restPoses=ik_rest_poses.tolist(), maxNumIterations=max_iterations, physicsClientId=self.id))
+            ik_joint_poses = np.array(p.calculateInverseKinematics(self.body, target_joint, targetPosition=target_pos, targetOrientation=self.get_quaternion(target_orient), lowerLimits=ik_lower_limits.tolist(), upperLimits=ik_upper_limits.tolist(), jointRanges=ik_joint_ranges.tolist(), restPoses=ik_rest_poses.tolist(), maxNumIterations=max_iterations, physicsClientId=self.id))
         else:
             ik_joint_poses = np.array(p.calculateInverseKinematics(self.body, target_joint, targetPosition=target_pos, lowerLimits=ik_lower_limits.tolist(), upperLimits=ik_upper_limits.tolist(), jointRanges=ik_joint_ranges.tolist(), restPoses=ik_rest_poses.tolist(), maxNumIterations=max_iterations, physicsClientId=self.id))
 

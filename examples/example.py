@@ -32,8 +32,7 @@ for i in range(1000):
 
     # Show local coordinate frame at robot end effector
     position, orientation = robot.get_link_pos_orient(robot.end_effector)
-    m.clear_visual_item(cf)
-    cf = m.visualize_coordinate_frame(position, orientation)
+    cf = m.visualize_coordinate_frame(position, orientation, replace_old_cf=cf)
 
     m.step_simulation()
 
