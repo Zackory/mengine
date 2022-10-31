@@ -16,8 +16,7 @@ robot = m.Robot.Panda(position=[0.5, 0, 0.75])
 pos = [0, 0, 1.2]
 orient = None
 target_joint_angles = robot.ik(robot.end_effector, target_pos=pos, target_orient=orient)
-robot.control(target_joint_angles)
-robot.set_joint_angles(target_joint_angles)
+robot.control(target_joint_angles, set_instantly=True)
 
 
 # Show global coordinate frame

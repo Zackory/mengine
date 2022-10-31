@@ -15,7 +15,7 @@ class Env:
         global envir
         envir = self
         self.time_step = time_step
-        self.gravity = gravity
+        self.gravity = np.array(gravity)
         self.id = None
         self.render = render
         self.gpu_rendering = gpu_rendering

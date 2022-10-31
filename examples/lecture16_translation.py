@@ -3,7 +3,7 @@ import numpy as np
 import mengine as m
 np.set_printoptions(precision=2, suppress=True)
 
-mu = 0.5 # Coefficient of friction
+mu = 0.02 # Coefficient of friction
 
 # Create environment and ground plane
 env = m.Env()
@@ -18,8 +18,8 @@ cube.set_whole_body_frictions(lateral_friction=mu, spinning_friction=0, rolling_
 m.step_simulation(steps=50)
 
 # Give the cube some velocity and let it begin slidding along the table
-cube.set_base_velocity(linear_velocity=[-2.0, 0, 0], angular_velocity=[0, 0, 0])
-m.step_simulation(steps=5)
+cube.set_base_velocity(linear_velocity=[-0.5, 0, 0], angular_velocity=[0, 0, 0])
+m.step_simulation(steps=50)
 
 # Now that the cube is moving, record the resultant normal and frictional forces between the cube and table
 normal, friction_1, friction_2 = cube.get_resultant_contact_forces(bodyB=table)

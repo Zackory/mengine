@@ -22,8 +22,7 @@ def reset(position, table_friction=0.5, cube_mass=100, cube_friction=0.5):
 
     # Initialize joint angles
     target_joint_angles = robot.ik(robot.end_effector, target_pos=position, target_orient=orient)
-    robot.control(target_joint_angles)
-    robot.set_joint_angles(target_joint_angles)
+    robot.control(target_joint_angles, set_instantly=True)
     return robot, cube
 
 # Investigate how the mass of the cube, the lateral_friction of the table, and the motor_force of the robot affects pushing the block.

@@ -18,7 +18,7 @@ cube.set_whole_body_frictions(lateral_friction=mu, spinning_friction=0, rolling_
 m.step_simulation(steps=50)
 
 # Create a collision-free sphere to visualize where we are applying force
-sphere = m.Shape(m.Sphere(radius=0.01), static=True, mass=0, position=cube.local_to_global_coordinate_frame([0.1, 0, 0]), collision=False, rgba=[1, 0, 0, 1])
+sphere = m.Shape(m.Sphere(radius=0.01), static=True, mass=0, position=cube.local_to_global_coordinate_frame([0.1, 0, 0])[0], collision=False, rgba=[1, 0, 0, 1])
 line = None
 
 for i in range(150):

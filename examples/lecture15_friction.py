@@ -1,9 +1,10 @@
 import os
 import numpy as np
 import mengine as m
+
 np.set_printoptions(precision=2, suppress=True)
 
-mu = 0.1 # Coefficient of friction
+mu = 0.3 # Coefficient of friction
 end_effector_pos = np.array([0.3, 0, 0.95])
 end_effector_orient = np.array([np.pi, 0, 0])
 cone_angle = np.arctan(mu)
@@ -14,7 +15,7 @@ ground = m.Ground()
 
 # Create table and cube
 table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static=True, position=[0, 0, 0], orientation=[0, 0, 0, 1])
-cube = m.Shape(m.Box(half_extents=[0.27, 0.05, 0.1]), static=False, mass=1.0, position=[-0.05, -0.03, 1], orientation=[0, 0, np.pi/8], rgba=[0, 1, 0, 0.5])
+cube = m.Shape(m.Box(half_extents=[0.1]*3), static=False, mass=1.0, position=[0, 0, 1], orientation=[0, 0, 0, 1], rgba=[0, 1, 0, 0.5])
 cube.set_whole_body_frictions(lateral_friction=mu, spinning_friction=0, rolling_friction=0)
 
 # Create Panda robot and initialize joint angles
@@ -45,14 +46,16 @@ for i in range(1000):
         a_perp_b = a - a_parallel_b
         w = np.cross(b, a_perp_b)
         a_b_angle = np.linalg.norm(a_perp_b) * ((np.cos(cone_angle)/np.linalg.norm(a_perp_b))*a_perp_b + (np.sin(cone_angle)/np.linalg.norm(w))*w)
-        a_proj_b = a_b_angle + a_parallel_b
+        left_edge = a_b_angle + a_parallel_b
         a_b_angle2 = np.linalg.norm(a_perp_b) * ((np.cos(-cone_angle)/np.linalg.norm(a_perp_b))*a_perp_b + (np.sin(-cone_angle)/np.linalg.norm(w))*w)
-        a_proj_b2 = a_b_angle2 + a_parallel_b
+        right_edge = a_b_angle2 + a_parallel_b
+
+        f_t = mu * cp['normal_force']
+        print('Friction magnitude:', f_t)
 
         # Visualize friction cone, contact normals, and friction directions
         line1 = m.Line(cp['posB'], np.array(cp['posB']) - np.array(cp['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=line1)
         line2 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_1'])*0.2, rgb=[0, 1, 0], replace_line=line2)
         line3 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_2'])*0.2, rgb=[0, 0, 1], replace_line=line3)
-        line4 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b*0.2, rgb=[1, 1, 1], replace_line=line4)
-        line5 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b2*0.2, rgb=[1, 1, 1], replace_line=line5)
-
+        line4 = m.Line(cp['posB'], np.array(cp['posB']) + left_edge*0.2, rgb=[1, 1, 1], replace_line=line4)
+        line5 = m.Line(cp['posB'], np.array(cp['posB']) + right_edge*0.2, rgb=[1, 1, 1], replace_line=line5)
