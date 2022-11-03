@@ -20,7 +20,7 @@ def friction_test(mu=0.5):
     cube = m.Shape(m.Box(half_extents=[0.1]*3), static=False, mass=1.0, position=[0, 0, 1], orientation=[0, 0, 0, 1], rgba=[0, 1, 0, 0.5])
 
     # Let the cube drop onto the table
-    m.step_simulation(steps=20, realtime=False)
+    m.step_simulation(steps=30, realtime=False)
 
     # Create a sphere (finger) to collide with the cube
     sphere = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=cube.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])

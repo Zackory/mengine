@@ -7,7 +7,7 @@ np.set_printoptions(precision=2, suppress=True)
 mu = 0.5 # Coefficient of friction
 applied_pos = [0.3, 0, 0.075]
 
-# Create environment and ground plane
+# Create environment
 env = m.Env()
 
 def force_test(force_magnitude=1):
@@ -22,7 +22,7 @@ def force_test(force_magnitude=1):
     cube = m.Shape(m.Box(half_extents=[0.1]*3), static=False, mass=1.0, position=[0, 0, 1], orientation=[0, 0, 0, 1], rgba=[0, 1, 0, 0.5])
 
     # Let the cube drop onto the table
-    m.step_simulation(steps=20, realtime=False)
+    m.step_simulation(steps=30, realtime=False)
 
     # Create a sphere (finger) to collide with the cube
     sphere = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=cube.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])

@@ -26,5 +26,6 @@ normal, friction_1, friction_2 = cube.get_resultant_contact_forces(bodyB=table)
 
 # Compute Coulomb's law for translation of point contact!
 velocity = cube.get_base_linear_velocity()
+normal_force_estimate = cube.get_link_mass(cube.base)*env.gravity # mg
 print('Estimate of friction:', -mu * velocity / np.linalg.norm(velocity) * np.linalg.norm(normal), '| Ground truth friction:', friction_2)
 

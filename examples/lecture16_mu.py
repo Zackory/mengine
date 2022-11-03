@@ -37,10 +37,10 @@ for i in range(150):
     line = m.Line(pos_global, pos_global + (force_global-pos_global)/10.0, rgb=[1, 0, 0])
 
     velocity = cube.get_base_linear_velocity()
-    if np.linalg.norm(velocity) > 0.005:
+    if 0.005 < np.linalg.norm(velocity) < 0.01:
         # Record the resultant normal and frictional forces between the cube and table
         normal, friction_1, friction_2 = cube.get_resultant_contact_forces(bodyB=table)
         print('Cube has begun to move with linear velocity:', velocity)
         print('Estimate mu: %.3f' % (np.linalg.norm(applied_force) / np.linalg.norm(normal)), '| True mu:', mu)
-        break
+        # break
 

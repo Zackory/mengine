@@ -69,15 +69,15 @@ class Body:
         else:
             return np.array(pos), np.array(orient)
 
-    def global_to_local_coordinate_frame(self, pos, orient=[0, 0, 0, 1]):
+    def global_to_local_coordinate_frame(self, pos, orient=[0, 0, 0, 1], rotation_only=False):
         base_pos, base_orient = self.get_base_pos_orient()
         base_pos_inv, base_orient_inv = p.invertTransform(base_pos, base_orient, physicsClientId=self.id)
-        real_pos, real_orient = p.multiplyTransforms(base_pos_inv, base_orient_inv, pos, self.get_quaternion(orient), physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(base_pos_inv if not rotation_only else [0, 0, 0], base_orient_inv, pos, self.get_quaternion(orient), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
-    def local_to_global_coordinate_frame(self, pos, orient=[0, 0, 0, 1]):
+    def local_to_global_coordinate_frame(self, pos, orient=[0, 0, 0, 1], rotation_only=False):
         base_pos, base_orient = self.get_base_pos_orient()
-        real_pos, real_orient = p.multiplyTransforms(base_pos, base_orient, pos, self.get_quaternion(orient), physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(base_pos if not rotation_only else [0, 0, 0], base_orient, pos, self.get_quaternion(orient), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
     def get_base_pos_orient(self):

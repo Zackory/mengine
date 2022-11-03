@@ -51,7 +51,7 @@ class Env:
             p.resetSimulation(physicsClientId=self.id)
         if self.gpu_rendering:
             self.util.enable_gpu()
-        p.resetDebugVisualizerCamera(cameraDistance=2, cameraYaw=0, cameraPitch=-30, cameraTargetPosition=[0, 0, 0.75], physicsClientId=self.id)
+        self.set_gui_camera()
         p.configureDebugVisualizer(p.COV_ENABLE_MOUSE_PICKING, 0, physicsClientId=self.id)
         p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0, lightPosition=[0, 5, 10], physicsClientId=self.id)
         p.setTimeStep(self.time_step, physicsClientId=self.id)
@@ -59,6 +59,9 @@ class Env:
         p.setRealTimeSimulation(0, physicsClientId=self.id)
         p.setGravity(self.gravity[0], self.gravity[1], self.gravity[2], physicsClientId=self.id)
         self.last_sim_time = time.time()
+
+    def set_gui_camera(self, look_at_pos=[0, 0, 0.75], distance=1, yaw=0, pitch=-30):
+        p.resetDebugVisualizerCamera(cameraDistance=distance, cameraYaw=yaw, cameraPitch=pitch, cameraTargetPosition=look_at_pos, physicsClientId=self.id)
 
     def slow_time(self):
         # Slow down time so that the simulation matches real time

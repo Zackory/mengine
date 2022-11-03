@@ -5,7 +5,7 @@ import mengine as m
 np.set_printoptions(precision=2, suppress=True)
 
 mu = 0.3 # Coefficient of friction
-end_effector_pos = np.array([0.3, 0, 0.95])
+end_effector_pos = np.array([0.3, 0.0, 0.95]) # TODO: Change 0.0 to 0.05 and watch at what point the end effector begins to slip across the block edge
 end_effector_orient = np.array([np.pi, 0, 0])
 cone_angle = np.arctan(mu)
 
