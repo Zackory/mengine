@@ -23,14 +23,14 @@ def friction_test(mu=0.5):
     m.step_simulation(steps=30, realtime=False)
 
     # Create a sphere (finger) to collide with the cube
-    sphere = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=cube.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])
-    sphere.set_whole_body_frictions(lateral_friction=100, spinning_friction=100, rolling_friction=100)
+    finger = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=cube.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])
+    finger.set_whole_body_frictions(lateral_friction=100, spinning_friction=100, rolling_friction=100)
 
     for i in range(100):
-        # Apply a force to the sphere
-        force = -sphere.get_link_mass(sphere.base)*env.gravity # Gravity compensation force
+        # Apply a force to the finger
+        force = -finger.get_link_mass(finger.base)*env.gravity # Gravity compensation force
         force += np.array([-3, 0, 0])
-        sphere.apply_external_force(link=sphere.base, force=force, pos=sphere.get_base_pos_orient()[0], local_coordinate_frame=False)
+        finger.apply_external_force(link=finger.base, force=force, pos=finger.get_base_pos_orient()[0], local_coordinate_frame=False)
 
         m.step_simulation(realtime=True)
 

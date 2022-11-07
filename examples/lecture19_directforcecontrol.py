@@ -26,16 +26,16 @@ def direct_force_control(constant_force=False):
     m.step_simulation(steps=30, realtime=False)
 
     # Create a sphere (finger) to collide with the box
-    sphere = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=box.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])
-    sphere.set_whole_body_frictions(lateral_friction=mu_finger, spinning_friction=10000, rolling_friction=10000)
+    finger = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=box.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])
+    finger.set_whole_body_frictions(lateral_friction=mu_finger, spinning_friction=10000, rolling_friction=10000)
 
     theta_desired = -np.pi/2
     integral_error = 0
     cf = None
 
     for i in range(150):
-        # Apply a force to the sphere
-        force = -sphere.get_link_mass(sphere.base)*env.gravity # Gravity compensation force
+        # Apply a force to the finger
+        force = -finger.get_link_mass(finger.base)*env.gravity # Gravity compensation force
         if constant_force:
             force += np.array([-10, 0, 0])
 
@@ -45,17 +45,17 @@ def direct_force_control(constant_force=False):
         cf = m.visualize_coordinate_frame(box_pos, box_orient, replace_old_cf=cf)
 
         kp = 20.0
-        ki = 0.0#0.5
-        kd = 0.0#2.0*np.sqrt(kp)
+        ki = 0.0
+        kd = 0.0
         integral_error += theta_desired - theta
         pid = kp*(theta_desired - theta) + ki*integral_error - kd*theta_dot
 
         # Tranform force vector to local box coordiante frame (just consider rotation of box, we don't want to translate the force vector)
         force_on_box_frame = lambda f: box.global_to_local_coordinate_frame([f[0], 0, f[1]], orient=[0, 0, 0, 1], rotation_only=True)[0][[0, -1]] # Get only x and z axis [0, -1], throw away y-axis
 
-        # The difference in torque if the sphere applied force at the box at the current sphere position, versus the actual box rotation (from PID)
+        # The difference in torque if the finger applied force at the box at the current finger position, versus the actual box rotation (from PID)
         cost = lambda force_control: (box_width*force_on_box_frame(force_control)[0] - pid)**2
-        # cost = lambda force_control: (np.linalg.norm(np.cross(box_pos - sphere_pos, [force_control[0], 0, force_control[1]])) - pid)**2
+        # cost = lambda force_control: (np.linalg.norm(np.cross(box_pos - finger_pos, [force_control[0], 0, force_control[1]])) - pid)**2
         # cost = lambda force_control: (box_width*(np.sin(theta)*force_control[0] + np.cos(theta)*force_control[1]) - pid)**2
 
         constraints = []
@@ -76,10 +76,9 @@ def direct_force_control(constant_force=False):
         fx, fz = res.x
         if not constant_force:
             force += np.array([fx, 0, fz])
-        cp = sphere.get_contact_points(bodyB=box, average=True)
-        print(res.x, force_on_box_frame(res.x))
+        # print(res.x, force_on_box_frame(res.x))
 
-        sphere.apply_external_force(link=sphere.base, force=force, pos=sphere.get_base_pos_orient()[0], local_coordinate_frame=False)
+        finger.apply_external_force(link=finger.base, force=force, pos=finger.get_base_pos_orient()[0], local_coordinate_frame=False)
 
         m.step_simulation(realtime=True)
 

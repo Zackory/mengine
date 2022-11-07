@@ -25,20 +25,20 @@ def force_test(force_magnitude=1):
     m.step_simulation(steps=30, realtime=False)
 
     # Create a sphere (finger) to collide with the cube
-    sphere = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=cube.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])
-    sphere.set_whole_body_frictions(lateral_friction=0.5, spinning_friction=100, rolling_friction=100)
+    finger = m.Shape(m.Sphere(radius=0.02), static=False, mass=1.0, position=cube.local_to_global_coordinate_frame(applied_pos)[0], rgba=[1, 0, 0, 1])
+    finger.set_whole_body_frictions(lateral_friction=0.5, spinning_friction=100, rolling_friction=100)
 
     positions = []
     for i in range(150):
-        # Apply a force to the sphere
-        force = -sphere.get_link_mass(sphere.base)*env.gravity # Gravity compensation force
+        # Apply a force to the finger
+        force = -finger.get_link_mass(finger.base)*env.gravity # Gravity compensation force
         force += np.array([-abs(force_magnitude), 0, 0])
-        sphere.apply_external_force(link=sphere.base, force=force, pos=sphere.get_base_pos_orient()[0], local_coordinate_frame=False)
+        finger.apply_external_force(link=finger.base, force=force, pos=finger.get_base_pos_orient()[0], local_coordinate_frame=False)
 
         m.step_simulation(realtime=True)
 
-        # Capture x position of sphere
-        positions.append(sphere.get_base_pos_orient()[0][0])
+        # Capture x position of finger
+        positions.append(finger.get_base_pos_orient()[0][0])
     return positions
 
 # Run simulation with varying table frictions
@@ -48,10 +48,10 @@ for force_mag in magnitudes:
     positions = force_test(force_mag)
     all_positions.append(positions)
 
-# Plot position curve of sphere (finger) for each table friction
+# Plot position curve of finger (finger) for each table friction
 for p, m in zip(all_positions, magnitudes):
     plt.plot(p, label='f^cd = %.1f' % m)
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=4, fancybox=True, shadow=True)
-plt.xlabel('time (s)')
+plt.xlabel('time (ms)')
 plt.ylabel('x (m)')
 plt.show()

@@ -84,8 +84,8 @@ class Body:
         return self.get_link_pos_orient(self.base)
 
     def get_link_velocity(self, link):
-        # if link == self.base:
-        #     return np.array(p.getBaseVelocity(self.body, physicsClientId=self.id)[0])
+        if link == self.base:
+            return np.array(p.getBaseVelocity(self.body, physicsClientId=self.id)[0])
         return np.array(p.getLinkState(self.body, link, computeForwardKinematics=True, computeLinkVelocity=True, physicsClientId=self.id)[6])
 
     def get_base_linear_velocity(self):
@@ -186,7 +186,11 @@ class Body:
     def get_force_torque_sensor(self, joint):
         return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
 
-    def set_base_pos_orient(self, pos, orient=[0, 0, 0, 1]):
+    def set_base_pos_orient(self, pos=None, orient=None):
+        if pos is None:
+            pos, _ = self.get_base_pos_orient()
+        if orient is None:
+            _, orient = self.get_base_pos_orient()
         p.resetBasePositionAndOrientation(self.body, pos, self.get_quaternion(orient), physicsClientId=self.id)
 
     def set_base_velocity(self, linear_velocity, angular_velocity=[0, 0, 0]):
