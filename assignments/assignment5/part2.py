@@ -124,7 +124,7 @@ def main(testobj, friction=True):
     grasps = [dict(contact_positions=1.1*contact_positions, contact_normals=contact_normals,
                    table_friction=0.5, obj_type=testobj, obj_mass=obj_mass, obj_friction=obj_friction, force_magnitude=force_magnitude, finger_mass=finger_mass)]
 
-    # append grasps with other parameter here:
+    # append grasps with other parameters here:
     # grasps.append()
 
     visualize_grasps(grasps)

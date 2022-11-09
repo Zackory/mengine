@@ -6,19 +6,6 @@ import matplotlib.pyplot as plt
 import scipy
 from scipy import optimize
 
-# contact_points: a set of contact point positions [[pix; piy; piz] ...]; Nx3 ndarray
-# w: a set of normalized contact screws [[cix; ciy; ciz; c0ix; c0iy; c0iz] ] such that norm([cix; ciy; ciz])=1; Nx6 ndarray
-
-
-# def draw_contact_screw(contact_points, w, n_fc=1):
-#
-#     ax = plt.figure().add_subplot(projection='3d')
-#     ax.scatter(contact_points.T[0], contact_points.T[1], contact_points.T[2])
-#     ax.quiver(contact_points.T[0], contact_points.T[1], contact_points.T[2], w.T[3], w.T[4],
-#               w.T[5], length=0.1, normalize=False)
-
-#     plt.show()
-# your package imports here:Nx3
 
 ###########################################
 # Functions to implement:
