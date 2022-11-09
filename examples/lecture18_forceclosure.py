@@ -2,7 +2,6 @@ import os
 import scipy
 import numpy as np
 import mengine as m
-# np.set_printoptions(precision=2, suppress=True)
 
 
 def contact_screw_2d(point, normal):
@@ -24,22 +23,14 @@ def is_force_closure(W):
     wc = 1.0 / len(W) * np.sum(W, axis=0)
     T = W - wc
     p = lambda x: scipy.optimize.linprog(x, A_ub=T, b_ub=np.ones(len(W))).fun
-    print('T rank:', np.linalg.matrix_rank(T))
+    print('W:', W, '\n', 'wc:', wc, '\n', 'T:', T, '\n', 'T rank:', np.linalg.matrix_rank(T), '\n', 'p(-wc):', -p(wc))
     if np.linalg.matrix_rank(T) < 3: # "< 3" for planar, "< 6" for 3D
         return False
-        # TTwc = np.matmul(np.matmul(T.T, np.linalg.pinv(T).T), wc.T)
-        # print('TTwc - wc:', np.linalg.norm(TTwc - wc))
-        # if not np.isclose(np.linalg.norm(TTwc - wc), 0):
-        #     return False
     # NOTE: linprog does minimize, but we need maximize, so compute -p(wc) rather than p(-wc)
     return -p(wc) < 1
 
-# Example from note sheet on Matt Mason's website. This is force closure, but note it is for a 1D space with 2D wrenches.
-# W = np.array([[2, -1], [0, 1], [-2, -3]])
-# print('Force closure:', is_force_closure(W))
-
-# NOTE: This is the force closure grasp from lecture 13
-p1, n1 = [1, -1], [0, 1]
+# NOTE: This is similar to the force closure grasp from lecture 13
+p1, n1 = [0, -1], [0, 1]
 p2, n2 = [1, -1], [-1, 0]
 p3, n3 = [-1, 1], [0, -1]
 p4, n4 = [-1, 1], [1, 0]
@@ -50,11 +41,13 @@ w4 = contact_screw_2d(p4, n4)
 
 print(w1, w2, w3, w4)
 print('Force closure:', is_force_closure([w1, w2, w3, w4]))
+exit()
 
-# If we change the location of contact point 1 from [1,-1] to [-1,-1], we no longer have force closure!
+# If we change the location of contact point 1 from [0,-1] to [-1,-1], we no longer have force closure!
 # If you look at the wrenches in wrench space, w1, w2, and w4 all lie on the n_0z = -1 plane. See lecture 13 figure. Origin is on boundary on convex hull, but not in interior!
 w1 = contact_screw_2d([-1, -1], [0, 1])
 print('Force closure:', is_force_closure([w1, w2, w3, w4]))
+exit()
 
 
 mu = 0.1
