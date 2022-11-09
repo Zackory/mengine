@@ -14,8 +14,9 @@ ground = m.Ground()
 
 # Create table and cube
 table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static=True, position=[0, 0, 0], orientation=[0, 0, 0, 1])
+table.set_whole_body_frictions(lateral_friction=0.1, spinning_friction=0, rolling_friction=0)
 cube = m.Shape(m.Box(half_extents=[0.27, 0.05, 0.1]), static=False, mass=1.0, position=[-0.05, -0.03, 1], orientation=[0, 0, np.pi/8], rgba=[0, 1, 0, 0.5])
-cube.set_whole_body_frictions(lateral_friction=0.1, spinning_friction=0, rolling_friction=0)
+cube.set_whole_body_frictions(lateral_friction=1, spinning_friction=0, rolling_friction=0)
 
 # Create Panda robot and initialize joint angles
 robot = m.Robot.Panda(position=[0.5, 0, 0.75])
@@ -29,7 +30,7 @@ m.step_simulation(steps=50)
 cube_pos, cube_orient = cube.get_link_pos_orient(cube.base, center_of_mass=True)
 com = m.Shape(m.Sphere(radius=0.02), static=True, mass=0.0, collision=False, position=cube_pos, rgba=[1, 0, 0, 1])
 
-line1=line2=line3=line4=line5=line6 = None
+line1=line2=line3=line4=line5=line6=line7 = None
 for i in range(1000):
     # Move the end effector to the left along a linear trajectory
     if end_effector_pos[0] > -0.27:
@@ -42,9 +43,9 @@ for i in range(1000):
 
     m.step_simulation()
 
-    if 350 < i < 450:
+    if 300 < i < 500:
         time.sleep(0.05)
-    # if 200 < i < 350:
+    # if 200 < i < 300:
     #     end_effector_pos += np.array([0.0016, 0.0006, 0])
     #     time.sleep(0.05)
 
@@ -62,14 +63,16 @@ for i in range(1000):
         a_b_angle2 = np.linalg.norm(a_perp_b) * ((np.cos(-cone_angle)/np.linalg.norm(a_perp_b))*a_perp_b + (np.sin(-cone_angle)/np.linalg.norm(w))*w)
         a_proj_b2 = a_b_angle2 + a_parallel_b
 
+        line_of_force = np.array(cp['contact_normal'])*cp['normal_force'] + np.array(cp['lateral_friction_dir_1'])*cp['lateral_friction_1']
+        line7 = m.Line(cp['posB'], cp['posB'] - line_of_force*0.2, rgb=[1, 0, 0], replace_line=line7)
+
         # Visualize friction cone, contact normals, and friction directions
-        line1 = m.Line(cp['posB'], np.array(cp['posB']) - np.array(cp['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=line1)
-        line2 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_1'])*0.2, rgb=[0, 1, 0], replace_line=line2)
-        line3 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_2'])*0.2, rgb=[0, 0, 1], replace_line=line3)
+        # line1 = m.Line(cp['posB'], np.array(cp['posB']) - np.array(cp['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=line1)
+        # line2 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_1'])*0.2, rgb=[0, 1, 0], replace_line=line2)
+        # line3 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_2'])*0.2, rgb=[0, 0, 1], replace_line=line3)
         line4 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b*0.2, rgb=[1, 1, 1], replace_line=line4)
         line5 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b2*0.2, rgb=[1, 1, 1], replace_line=line5)
 
-        # ee_pos, ee_orient = robot.get_link_pos_orient(robot.end_effector)
         velocity = robot.get_link_velocity(robot.end_effector)
         line6 = m.Line(cp['posB'], cp['posB'] + velocity*3, rgb=[1, 1, 0], replace_line=line6)
 

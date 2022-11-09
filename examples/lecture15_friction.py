@@ -20,6 +20,7 @@ cube.set_whole_body_frictions(lateral_friction=mu, spinning_friction=0, rolling_
 
 # Create Panda robot and initialize joint angles
 robot = m.Robot.Panda(position=[0.5, 0, 0.75])
+robot.set_whole_body_frictions(lateral_friction=1, spinning_friction=0, rolling_friction=0)
 target_joint_angles = robot.ik(robot.end_effector, target_pos=end_effector_pos, target_orient=end_effector_orient)
 robot.control(target_joint_angles, set_instantly=True)
 
