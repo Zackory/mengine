@@ -43,6 +43,8 @@ for i in range(1000):
 
     m.step_simulation()
 
+    # if i > 200:
+    #     time.sleep(200)
     if 300 < i < 500:
         time.sleep(0.05)
     # if 200 < i < 300:

@@ -231,6 +231,10 @@ class Body:
     def set_mass(self, link, mass):
         p.changeDynamics(self.body, link, mass=mass, physicsClientId=self.id)
 
+    def set_restitution(self, restitution):
+        for link in self.all_joints + [self.base]:
+            p.changeDynamics(self.body, link, restitution=restitution, physicsClientId=self.id)
+
     def set_all_joints_stiffness(self, stiffness):
         for joint in self.all_joints:
             self.set_joint_stiffness(joint, stiffness)

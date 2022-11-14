@@ -1,7 +1,6 @@
 import os
 import scipy
 import numpy as np
-import mengine as m
 
 
 def contact_screw_2d(point, normal):
