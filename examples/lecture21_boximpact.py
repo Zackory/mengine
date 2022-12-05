@@ -31,7 +31,7 @@ def test_impact(restitution=0.5, mu=0.5, desired_distance=0.5, box_mass=1.0):
 
     m_b = box.get_link_mass(box.base)
     m_f = finger.get_link_mass(finger.base)
-    v_f = (m_b + m_f)*np.sqrt(2*mu*9.81*desired_distance) / (m_f*(1+restitution))
+    v_f = (m_b + m_f)*np.sqrt(-2*mu*-9.81*desired_distance) / (m_f*(1+restitution))
     print('Velocity of finger:', v_f)
 
     finger.set_base_velocity([-v_f, 0, 0])

@@ -16,7 +16,6 @@ def friction_test(mu=0.5):
     # Create table and cube
     table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static=True, position=[0, 0, 0], orientation=[0, 0, 0, 1])
     table.set_whole_body_frictions(lateral_friction=mu, spinning_friction=0, rolling_friction=0)
-    # wall = m.Shape(m.Box(half_extents=[0.05, 0.3, 0.3]), static=True, mass=0, position=[-0.5, 0, 0.8], orientation=[0, 0, 0, 1], rgba=[1, 1, 1, 1])
     cube = m.Shape(m.Box(half_extents=[0.1]*3), static=False, mass=1.0, position=[0, 0, 1], orientation=[0, 0, 0, 1], rgba=[0, 1, 0, 0.5])
 
     # Let the cube drop onto the table
