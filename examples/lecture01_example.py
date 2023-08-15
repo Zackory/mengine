@@ -13,11 +13,10 @@ table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static
 robot = m.Robot.Panda(position=[0.5, 0, 0.75])
 
 # Move end effector to a starting position using IK
-pos = [0, 0, 1.2]
-orient = None
+pos = [0, 0, 1]
+orient = m.get_quaternion([np.pi, 0, 0])
 target_joint_angles = robot.ik(robot.end_effector, target_pos=pos, target_orient=orient)
 robot.control(target_joint_angles, set_instantly=True)
-
 
 # Show global coordinate frame
 m.visualize_coordinate_frame()
@@ -25,7 +24,8 @@ cf = None
 
 for i in range(1000):
     # Move the end effector between two different positions
-    pos = [0.2, 0.2, 0.9] if (i % 200) < 100 else [0, 0, 1.2]
+    pos = [0.2, 0.2, 0.8] if (i % 200) < 100 else [0, 0, 1]
+    orient = m.get_quaternion([np.pi, np.pi/4, 0]) if (i % 200) < 100 else m.get_quaternion([np.pi, 0, 0])
     target_joint_angles = robot.ik(robot.end_effector, target_pos=pos, target_orient=orient, use_current_joint_angles=True)
     robot.control(target_joint_angles)
 

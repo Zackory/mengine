@@ -77,6 +77,10 @@ def step_simulation(steps=1, realtime=True, env=None):
         if realtime and env.render:
             env.slow_time()
 
+def get_keys():
+    specials = {p.B3G_ALT: 'alt', p.B3G_SHIFT: 'shift', p.B3G_CONTROL: 'control', p.B3G_RETURN: 'return', p.B3G_LEFT_ARROW: 'left_arrow', p.B3G_RIGHT_ARROW: 'right_arrow', p.B3G_UP_ARROW: 'up_arrow', p.B3G_DOWN_ARROW: 'down_arrow'}
+    # return {chr(k) if k not in specials else specials[k] : v for k, v in p.getKeyboardEvents().items()}
+    return [chr(k) if k not in specials else specials[k] for k in p.getKeyboardEvents().keys()]
 
 class Robot:
     class Panda(Panda):
