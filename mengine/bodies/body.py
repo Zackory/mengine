@@ -23,7 +23,7 @@ class Body:
 
     def control(self, targets, joints=None, gains=None, forces=None, velocity_control=False, set_instantly=False):
         joints = self.controllable_joints if joints is None else joints
-        gains = self.motor_gains if gains is None else gains
+        gains = (self.motor_gains if not velocity_control else 1) if gains is None else gains
         forces = self.motor_forces if forces is None else forces
         if type(gains) in [int, float, np.float64, np.float32]:
             gains = [gains]*len(joints)
@@ -36,21 +36,27 @@ class Body:
         if set_instantly:
             self.set_joint_angles(targets, joints=joints, use_limits=True)
 
-    def get_joint_angles(self, joints=None):
+    def get_joint_angles(self, joints=None, include_fixed_joints=True):
         if joints is None:
             joints = self.all_joints
         elif not joints:
             return []
-        robot_joint_states = p.getJointStates(self.body, jointIndices=joints, physicsClientId=self.id)
-        return np.array([x[0] for x in robot_joint_states])
+        if not include_fixed_joints:
+            return np.array(self.get_motor_joint_states(joints)[1])
+        else:
+            robot_joint_states = p.getJointStates(self.body, jointIndices=joints, physicsClientId=self.id)
+            return np.array([x[0] for x in robot_joint_states])
 
-    def get_joint_velocities(self, joints=None):
+    def get_joint_velocities(self, joints=None, include_fixed_joints=True):
         if joints is None:
             joints = self.all_joints
         elif not joints:
             return []
-        robot_joint_states = p.getJointStates(self.body, jointIndices=joints, physicsClientId=self.id)
-        return np.array([x[1] for x in robot_joint_states])
+        if not include_fixed_joints:
+            return np.array(self.get_motor_joint_states(joints)[2])
+        else:
+            robot_joint_states = p.getJointStates(self.body, jointIndices=joints, physicsClientId=self.id)
+            return np.array([x[1] for x in robot_joint_states])
 
     def get_joint_angles_dict(self, joints=None):
         return {j: a for j, a in zip(joints, self.get_joint_angles(joints))}
@@ -185,6 +191,23 @@ class Body:
 
     def get_force_torque_sensor(self, joint):
         return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
+
+    def get_linear_jacobian(self, link, target_joint_accelerations=None):
+        return self.get_jacobian(link, target_joint_accelerations)[0]
+
+    def get_angular_jacobian(self, link, target_joint_accelerations=None):
+        return self.get_jacobian(link, target_joint_accelerations)[1]
+
+    def get_jacobian(self, link, target_joint_accelerations=None):
+        # linear_jacobian: the translational jacobian, x_dot = J_t * q_dot
+        # angular_jacobian: the rotational jacobian, r_dot = J_r * q_dot
+        joint_states = self.get_motor_joint_states()
+        joint_positions = joint_states[1]
+        joint_velocities = joint_states[2]
+        target_joint_accelerations = [0]*len(joint_positions) if target_joint_accelerations is None else list(target_joint_accelerations)
+
+        linear_jacobian, angular_jacobian = p.calculateJacobian(self.body, link, localPosition=[0]*3, objPositions=joint_positions, objVelocities=joint_velocities, objAccelerations=target_joint_accelerations, physicsClientId=self.id)
+        return np.array(linear_jacobian), np.array(angular_jacobian)
 
     def set_base_pos_orient(self, pos=None, orient=None):
         if pos is None:

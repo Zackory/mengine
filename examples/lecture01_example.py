@@ -33,6 +33,6 @@ for i in range(1000):
     position, orientation = robot.get_link_pos_orient(robot.end_effector)
     cf = m.visualize_coordinate_frame(position, orientation, replace_old_cf=cf)
 
-    m.step_simulation()
+    m.step_simulation(realtime=True)
 
 

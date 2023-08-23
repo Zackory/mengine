@@ -6,8 +6,12 @@ import mengine as m
 env = m.Env()
 ground = m.Ground()
 
-# Create table
+# Create table and cube
 table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static=True, position=[0, 0, 0], orientation=[0, 0, 0, 1])
+cube = m.Shape(m.Box(half_extents=[0.1]*3), static=False, mass=1.0, position=[0, 0, 1], orientation=[0, 0, 0, 1], rgba=[0, 1, 0, 0.5])
+
+# Let the cube drop onto the table
+m.step_simulation(steps=20)
 
 # Create Panda manipulator
 robot = m.Robot.Panda(position=[0.5, 0, 0.75])
@@ -51,4 +55,4 @@ while True:
     p, o = robot.get_link_pos_orient(robot.end_effector)
     cf = m.visualize_coordinate_frame(p, o, replace_old_cf=cf)
 
-    m.step_simulation()
+    m.step_simulation(realtime=True)

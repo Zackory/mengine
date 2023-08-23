@@ -32,12 +32,13 @@ z_desired = finger_pos[-1]
 
 target = m.Shape(m.Sphere(radius=0.02), static=True, mass=0.0, collision=False, position=finger_pos, rgba=[1, 1, 0, 1])
 
-keys = {m.p.B3G_UP_ARROW: [0, 0, 0.01], m.p.B3G_DOWN_ARROW: [0, 0, -0.01], m.p.B3G_LEFT_ARROW: [-0.01, 0, 0], m.p.B3G_RIGHT_ARROW: [0.01, 0, 0]}
+keys_actions = {'up_arrow': [0, 0, 0.01], 'down_arrow': [0, 0, -0.01], 'left_arrow': [-0.01, 0, 0], 'right_arrow': [0.01, 0, 0]}
 while True:
-    key_events = m.p.getKeyboardEvents()
-    for key, value in keys.items():
-        if key in key_events:
-            desired_pos += np.array(value)
+    keys = m.get_keys()
+    # Process position movement keys
+    for key, action in keys_actions.items():
+        if 'shift' not in keys and key in keys:
+            desired_pos += action
 
     # Apply a force to the finger
     force = -finger.get_link_mass(finger.base)*env.gravity # Gravity compensation force
