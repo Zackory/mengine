@@ -38,6 +38,9 @@ rpy_keys_actions = {'k': [-0.05, 0, 0], 'i': [0.05, 0, 0],
                     'u': [0, -0.05, 0], 'o': [0, 0.05, 0],
                     'j': [0, 0, -0.05], 'l': [0, 0, 0.05]}
 
+coordinate_frames = []
+last_marker_time = 0
+
 while True:
     keys = m.get_keys()
     # Process position movement keys ('u', 'i', 'o', 'j', 'k', 'l')
@@ -47,6 +50,25 @@ while True:
     for key, action in rpy_keys_actions.items():
         if 'shift' in keys and key in keys:
             orientation += action
+    if 'm' in keys and time.time() > last_marker_time + 1:
+        # Mark (save) the coordinate frame for the current end effector pose
+        coordinate_frames.append(robot.get_link_pos_orient(robot.end_effector))
+        m.visualize_coordinate_frame(coordinate_frames[-1][0], coordinate_frames[-1][1])
+        last_marker_time = time.time()
+        # Print out distance metrics between each coordinate frame
+        for i, (p1, o1) in enumerate(coordinate_frames):
+            for j, (p2, o2) in enumerate(coordinate_frames[i+1:]):
+                print('Euclidean between (%d) and (%d):' % (i, i+1+j), np.linalg.norm(p2 - p1))
+                print('Manhattan between (%d) and (%d):' % (i, i+1+j), np.sum(np.abs(p2 - p1)))
+                print('Chebyshev between (%d) and (%d):' % (i, i+1+j), np.max(p2 - p1))
+        print('-'*20)
+    if 'c' in keys:
+        # Clear all coordinate frames
+        m.clear_all_visual_items()
+        # for cf in coordinate_frames:
+        #     m.clear_visual_item(cf)
+        coordinate_frames = []
+
     # Move the end effector to the new pose
     target_joint_angles = robot.ik(robot.end_effector, target_pos=position, target_orient=m.get_quaternion(orientation), use_current_joint_angles=True)
     robot.control(target_joint_angles)
