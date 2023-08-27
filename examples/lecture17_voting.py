@@ -66,16 +66,19 @@ for i in range(1000):
         a_proj_b2 = a_b_angle2 + a_parallel_b
 
         line_of_force = np.array(cp['contact_normal'])*cp['normal_force'] + np.array(cp['lateral_friction_dir_1'])*cp['lateral_friction_1']
-        line7 = m.Line(cp['posB'], cp['posB'] - line_of_force*0.2, rgb=[1, 0, 0], replace_line=line7)
+        if np.any(line_of_force):
+            line_of_force = line_of_force / np.linalg.norm(line_of_force)
+            line7 = m.Line(cp['posB'], cp['posB'] - line_of_force*0.15, radius=0.003, rgb=[1, 0, 0], replace_line=line7)
 
         # Visualize friction cone, contact normals, and friction directions
         # line1 = m.Line(cp['posB'], np.array(cp['posB']) - np.array(cp['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=line1)
         # line2 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_1'])*0.2, rgb=[0, 1, 0], replace_line=line2)
         # line3 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_2'])*0.2, rgb=[0, 0, 1], replace_line=line3)
-        line4 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b*0.2, rgb=[1, 1, 1], replace_line=line4)
-        line5 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b2*0.2, rgb=[1, 1, 1], replace_line=line5)
+        line4 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b*0.2, radius=0.002, rgb=[1, 1, 1], replace_line=line4)
+        line5 = m.Line(cp['posB'], np.array(cp['posB']) + a_proj_b2*0.2, radius=0.002, rgb=[1, 1, 1], replace_line=line5)
 
         velocity = robot.get_link_velocity(robot.end_effector)
-        line6 = m.Line(cp['posB'], cp['posB'] + velocity*3, rgb=[1, 1, 0], replace_line=line6)
+        velocity = velocity / np.linalg.norm(velocity)
+        line6 = m.Line(cp['posB'], cp['posB'] + velocity*0.15, radius=0.002, rgb=[1, 1, 0], replace_line=line6)
 
 

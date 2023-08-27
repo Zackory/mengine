@@ -53,10 +53,14 @@ for i in range(1000):
 
         f_t = mu * cp['normal_force']
         print('Friction magnitude:', f_t)
+        print(cp['lateral_friction_dir_1'], cp['lateral_friction_dir_2'])
 
         # Visualize friction cone, contact normals, and friction directions
-        line1 = m.Line(cp['posB'], np.array(cp['posB']) - np.array(cp['contact_normal'])*0.2, rgb=[1, 0, 0], replace_line=line1)
-        line2 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_1'])*0.2, rgb=[0, 1, 0], replace_line=line2)
-        line3 = m.Line(cp['posB'], np.array(cp['posB']) + np.array(cp['lateral_friction_dir_2'])*0.2, rgb=[0, 0, 1], replace_line=line3)
+        n = np.array(cp['contact_normal']) / np.linalg.norm(cp['contact_normal'])
+        d1 = np.array(cp['lateral_friction_dir_1']) / np.linalg.norm(cp['lateral_friction_dir_1'])
+        d2 = np.array(cp['lateral_friction_dir_2']) / np.linalg.norm(cp['lateral_friction_dir_2'])
+        line1 = m.Line(cp['posB'], np.array(cp['posB']) - n*0.2, rgb=[1, 0, 0], replace_line=line1)
+        line2 = m.Line(cp['posB'], np.array(cp['posB']) + d1*0.2, rgb=[0, 1, 0], replace_line=line2)
+        line3 = m.Line(cp['posB'], np.array(cp['posB']) + d2*0.2, rgb=[0, 0, 1], replace_line=line3)
         line4 = m.Line(cp['posB'], np.array(cp['posB']) + left_edge*0.2, rgb=[1, 1, 1], replace_line=line4)
         line5 = m.Line(cp['posB'], np.array(cp['posB']) + right_edge*0.2, rgb=[1, 1, 1], replace_line=line5)

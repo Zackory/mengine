@@ -56,18 +56,18 @@ while True:
         m.visualize_coordinate_frame(coordinate_frames[-1][0], coordinate_frames[-1][1])
         last_marker_time = time.time()
         # Print out distance metrics between each coordinate frame
-        for i, (p1, o1) in enumerate(coordinate_frames):
-            for j, (p2, o2) in enumerate(coordinate_frames[i+1:]):
+        for i, (p1, q1) in enumerate(coordinate_frames):
+            for j, (p2, q2) in enumerate(coordinate_frames[i+1:]):
                 print('Euclidean between (%d) and (%d):' % (i, i+1+j), np.linalg.norm(p2 - p1))
                 print('Manhattan between (%d) and (%d):' % (i, i+1+j), np.sum(np.abs(p2 - p1)))
                 print('Chebyshev between (%d) and (%d):' % (i, i+1+j), np.max(p2 - p1))
+                print('Quaternion distance between (%d) and (%d)' % (i, i+1+j), np.arccos(2*np.square(q1.dot(q2)) - 1))
         print('-'*20)
     if 'c' in keys:
         # Clear all coordinate frames
         m.clear_all_visual_items()
-        # for cf in coordinate_frames:
-        #     m.clear_visual_item(cf)
         coordinate_frames = []
+        cf = None
 
     # Move the end effector to the new pose
     target_joint_angles = robot.ik(robot.end_effector, target_pos=position, target_orient=m.get_quaternion(orientation), use_current_joint_angles=True)

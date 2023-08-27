@@ -58,5 +58,5 @@ for s in scenarios:
         m.clear_all_visual_items()
         if cp is not None:
             for c in cp:
-                line = m.Line(c['posB'], np.array(c['posB']) + np.array(c['contact_normal'])*0.2, rgb=[1, 0, 0])
+                line = m.Line(c['posB'], np.array(c['posB']) + np.array(c['contact_normal'])*0.2, radius=0.002, rgb=[1, 0, 0])
 

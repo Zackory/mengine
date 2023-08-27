@@ -1,10 +1,5 @@
 # Manipulation Engine
 
-## Install
-```bash
-python3 -m pip install mengine@git+https://github.com/Zackory/mengine.git
-```
-
 ## Install with a virtualenv
 ```bash
 python3 -m pip install --user virtualenv
@@ -14,6 +9,11 @@ pip3 install --upgrade pip
 git clone https://github.com/Zackory/mengine.git
 cd mengine
 pip3 install -e .
+```
+
+## Quick Install
+```bash
+python3 -m pip install mengine@git+https://github.com/Zackory/mengine.git
 ```
 
 ## Example
