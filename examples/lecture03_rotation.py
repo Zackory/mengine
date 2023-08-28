@@ -34,8 +34,5 @@ print('x\'_A:', x_A_new)
 # Coordinate transform this new point to frame B
 print('x\'_B:', R_BA.dot(x_A_new))
 
-temp = m.Shape(m.Sphere(radius=0.001), static=True, position=[0, 0, 0], rgba=[1, 0, 0, 1])
-
-for i in range(10000):
-    m.step_simulation(realtime=True)
+m.step_simulation(steps=10000, realtime=True)
 

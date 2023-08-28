@@ -130,6 +130,19 @@ def get_difference_quaternion(q1, q2, env=None):
     env = env if env is not None else envir
     return p.getDifferenceQuaternion(get_quaternion(q1), get_quaternion(q2), physicsClientId=env.id)
 
+def quaternion_product(q1, q2, env=None):
+    env = env if env is not None else envir
+    # Return Hamilton product of 2 quaternions
+    return p.multiplyTransforms([0, 0, 0], get_quaternion(q1), [0, 0, 0], q2, physicsClientId=env.id)[1]
+
+def multiply_transforms(p1, q1, p2, q2, env=None):
+    env = env if env is not None else envir
+    return p.multiplyTransforms(p1, get_quaternion(q1), p2, get_quaternion(q2), physicsClientId=env.id)
+
+def rotate_point(point, quaternion, env=None):
+    env = env if env is not None else envir
+    return p.multiplyTransforms([0, 0, 0], get_quaternion(quaternion), point, [0, 0, 0, 1], physicsClientId=env.id)[0]
+
 
 class Obj:
     def __init__(self, type=None, radius=0, half_extents=[0, 0, 0], length=0, normal=[0, 0, 1], filename='', scale=[1, 1, 1]):
