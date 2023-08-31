@@ -74,9 +74,9 @@ class Env:
 def step_simulation(steps=1, realtime=True, env=None):
     env = env if env is not None else envir
     for _ in range(steps):
-        p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=env.id) # Enable rendering
+        # p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=env.id) # Enable rendering
         p.stepSimulation(physicsClientId=env.id)
-        p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=env.id) # Disable rendering, this allows us to create and delete objects without object flashing
+        # p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0, physicsClientId=env.id) # Disable rendering, this allows us to create and delete objects without object flashing
         if realtime and env.render:
             env.slow_time()
 
