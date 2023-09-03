@@ -294,15 +294,36 @@ def four_bar_linkage(env=None):
         # collision_shape = p.createCollisionShape(shape, radius=radius, height=length, collisionFramePosition=position_offset, collisionFrameOrientation=orientation, physicsClientId=env.id)
         # return collision_shape, visual_shape
 
-    link_c1, link_v1 = create_body(radius=0.01, length=0.05)
-    link_c2, link_v2 = create_body(radius=0.01, length=0.05)
-    link_c3, link_v3 = create_body(radius=0.01, length=0.05)
-    link_c4, link_v4 = create_body(radius=0.01, length=0.05)
+    # link_c1, link_v1 = create_body(radius=0.01, length=0.05)
+    # link_c2, link_v2 = create_body(radius=0.01, length=0.05)
+    # link_c3, link_v3 = create_body(radius=0.01, length=0.05)
+    # link_c4, link_v4 = create_body(radius=0.01, length=0.05)
 
-    link_p1, link_p2, link_p3, link_p4 = [[0, 0, 0.05]]*4
-    link_o1, link_o2, link_o3, link_o4 = [[0, 0, 0, 1]]*4
+    link_c1, link_c2, link_c3, link_c4 = [-1]*4
 
-    linkMasses = [1, 1, 1]
+    link_v1 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+    link_v2 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0.1], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+    link_v3 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.4, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0.2], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+    link_v4 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0.1], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+
+    # # link_v1 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0], visualFrameOrientation=get_quaternion([0, np.pi/2, 0]), physicsClientId=env.id)
+    # link_v1 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+    # link_v2 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0.1], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+    # link_v3 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0.1], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+    # # link_v4 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, -0.2, 0], visualFrameOrientation=get_quaternion([np.pi/2, 0, 0]), physicsClientId=env.id)
+    # link_v4 = p.createVisualShape(p.GEOM_CAPSULE, radius=0.02, length=0.2, rgbaColor=[1, 1, 1, 1], visualFramePosition=[0, 0, 0.1], visualFrameOrientation=[0, 0, 0, 1], physicsClientId=env.id)
+
+    # link_p1, link_o1 = [0, 0, 0], get_quaternion([0, np.pi/2, 0])
+    # link_p2, link_o2 = [0, 0, 0.1], get_quaternion([0, 0, np.pi/2])
+    # link_p3, link_o3 = [0, 0, -0.1], get_quaternion([0, 0, np.pi/2])
+    # link_p4, link_o4 = [0, 0, 0.2], get_quaternion([np.pi/2, 0, 0])
+
+    link_p1, link_o1 = [0, 0, 0], get_quaternion([0, -np.pi/2, 0])
+    link_p2, link_o2 = [0, 0, 0.1], get_quaternion([0, 0, np.pi/2])
+    link_p3, link_o3 = [0, 0, 0.2], [0, 0, 0, 1]
+    link_p4, link_o4 = [0, 0, 0.2], [0, 0, 0, 1]
+
+    linkMasses = [1]*3
     linkCollisionShapeIndices = [link_c2, link_c3, link_c4]
     linkVisualShapeIndices = [link_v2, link_v3, link_v4]
     linkPositions = [link_p2, link_p3, link_p4]
@@ -315,3 +336,4 @@ def four_bar_linkage(env=None):
 
     body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=link_c1, baseVisualShapeIndex=link_v1, basePosition=link_p1, baseOrientation=link_o1, linkMasses=linkMasses, linkCollisionShapeIndices=linkCollisionShapeIndices, linkVisualShapeIndices=linkVisualShapeIndices, linkPositions=linkPositions, linkOrientations=linkOrientations, linkInertialFramePositions=linkInertialFramePositions, linkInertialFrameOrientations=linkInertialFrameOrientations, linkParentIndices=linkParentIndices, linkJointTypes=linkJointTypes, linkJointAxis=linkJointAxis, physicsClientId=env.id)
     return Body(body, env, controllable_joints=[0, 1, 2])
+

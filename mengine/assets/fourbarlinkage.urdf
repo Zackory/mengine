@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<robot name="simple_arm">
+
+  <!-- Define materials -->
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+  <material name="red">
+    <color rgba="1 0 0 1"/>
+  </material>
+
+
+  <!-- Define links -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.5707 0"/>
+      <geometry>
+        <capsule length="0.2" radius="0.02"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <link name="link2">
+    <visual>
+     <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <capsule length="0.2" radius="0.02"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <link name="link3">
+    <visual>
+     <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <capsule length="0.2" radius="0.02"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <link name="link4">
+    <visual>
+     <origin xyz="0 -0.2 0" rpy="1.5707 0 0"/>
+      <geometry>
+        <capsule length="0.4" radius="0.02"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <link name="link5"/>
+
+  <link name="link6"/>
+
+
+  <!-- Define joints -->
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link2"/>
+    <origin xyz="0.1 0 0" rpy="0 0 1.5707"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" velocity="10"/>
+  </joint>
+
+  <joint name="joint2" type="revolute">
+    <parent link="base_link"/>
+    <child link="link3"/>
+    <origin xyz="-0.1 0 0" rpy="0 0 1.5707"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" velocity="10"/>
+  </joint>
+
+  <joint name="joint3" type="revolute">
+    <parent link="link3"/>
+    <child link="link4"/>
+    <origin xyz="0 0 0.2" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" velocity="10"/>
+  </joint>
+
+  <joint name="joint4" type="revolute">
+    <parent link="link4"/>
+    <child link="link5"/>
+    <origin xyz="0 -0.2 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" velocity="10"/>
+  </joint>
+
+  <joint name="joint5" type="revolute">
+    <parent link="link2"/>
+    <child link="link6"/>
+    <origin xyz="0 0 0.2" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" velocity="10"/>
+  </joint>
+
+</robot>
