@@ -124,7 +124,7 @@ def get_quaternion(euler, env=None):
 
 def get_rotation_matrix(quaternion, env=None):
     env = env if env is not None else envir
-    return np.array(p.getMatrixFromQuaternion(np.array(quaternion), physicsClientId=env.id)).reshape((3,3)) if len(quaternion) == 4 else np.array(p.getMatrixFromQuaternion(p.getQuaternionFromEuler(np.array(quaternion), physicsClientId=env.id), physicsClientId=env.id)).reshape((3,3))
+    return np.array(p.getMatrixFromQuaternion(get_quaternion(quaternion), physicsClientId=env.id)).reshape((3,3))
 
 def get_difference_quaternion(q1, q2, env=None):
     env = env if env is not None else envir
@@ -221,6 +221,14 @@ def Line(start, end, radius=0.005, rgba=None, rgb=[1, 0, 0], replace_line=None, 
     orientation = np.cross(v1, v2).tolist() + [np.sqrt((np.linalg.norm(v1)**2) * (np.linalg.norm(v2)**2)) + np.dot(v1, v2)]
     orientation = orientation / np.linalg.norm(orientation)
     if replace_line is not None:
+        # p.removeBody(replace_line.body, env.id)
+        # for i in range(len(env.visual_items)):
+        #     if env.visual_items[i] == replace_line:
+        #         del env.visual_items[i]
+        #         break
+        # l = Shape(Cylinder(radius=radius, length=np.linalg.norm(np.array(end)-start)), static=True, position=start + (np.array(end)-start)/2, orientation=orientation, collision=False, rgba=rgba)
+        # env.visual_items.append(l)
+        # return l
         replace_line.set_base_pos_orient(start + (np.array(end)-start)/2, orientation)
         return replace_line
     else:
@@ -258,9 +266,17 @@ def clear_visual_item(items, env=None):
         for item in items:
             p.removeBody(item.body, env.id)
             # p.removeUserDebugItem(item, physicsClientId=env.id)
+            for i in range(len(env.visual_items)):
+                if env.visual_items[i] == item:
+                    del env.visual_items[i]
+                    break
     else:
         p.removeBody(items.body, env.id)
         # p.removeUserDebugItem(items, physicsClientId=env.id)
+        for i in range(len(env.visual_items)):
+            if env.visual_items[i] == items:
+                del env.visual_items[i]
+                break
 
 def clear_all_visual_items(env=None):
     env = env if env is not None else envir
@@ -269,3 +285,33 @@ def clear_all_visual_items(env=None):
     env.visual_items = []
     # p.removeAllUserDebugItems(physicsClientId=env.id)
 
+def four_bar_linkage(env=None):
+    env = env if env is not None else envir
+
+    def create_body(shape=p.GEOM_CAPSULE, radius=0, length=0, position_offset=[0, 0, 0], orientation=[0, 0, 0, 1]):
+        visual_shape = p.createVisualShape(shape, radius=radius, length=length, rgbaColor=[1, 1, 1, 1], visualFramePosition=position_offset, visualFrameOrientation=orientation, physicsClientId=env.id)
+        return -1, visual_shape
+        # collision_shape = p.createCollisionShape(shape, radius=radius, height=length, collisionFramePosition=position_offset, collisionFrameOrientation=orientation, physicsClientId=env.id)
+        # return collision_shape, visual_shape
+
+    link_c1, link_v1 = create_body(radius=0.01, length=0.05)
+    link_c2, link_v2 = create_body(radius=0.01, length=0.05)
+    link_c3, link_v3 = create_body(radius=0.01, length=0.05)
+    link_c4, link_v4 = create_body(radius=0.01, length=0.05)
+
+    link_p1, link_p2, link_p3, link_p4 = [[0, 0, 0.05]]*4
+    link_o1, link_o2, link_o3, link_o4 = [[0, 0, 0, 1]]*4
+
+    linkMasses = [1, 1, 1]
+    linkCollisionShapeIndices = [link_c2, link_c3, link_c4]
+    linkVisualShapeIndices = [link_v2, link_v3, link_v4]
+    linkPositions = [link_p2, link_p3, link_p4]
+    linkOrientations = [link_o2, link_o3, link_o4]
+    linkInertialFramePositions = [[0, 0, 0]]*3
+    linkInertialFrameOrientations = [[0, 0, 0, 1]]*3
+    linkParentIndices = [0, 1, 2]
+    linkJointTypes = [p.JOINT_REVOLUTE]*3
+    linkJointAxis =[[1, 0, 0], [1, 0, 0], [1, 0, 0]]
+
+    body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=link_c1, baseVisualShapeIndex=link_v1, basePosition=link_p1, baseOrientation=link_o1, linkMasses=linkMasses, linkCollisionShapeIndices=linkCollisionShapeIndices, linkVisualShapeIndices=linkVisualShapeIndices, linkPositions=linkPositions, linkOrientations=linkOrientations, linkInertialFramePositions=linkInertialFramePositions, linkInertialFrameOrientations=linkInertialFrameOrientations, linkParentIndices=linkParentIndices, linkJointTypes=linkJointTypes, linkJointAxis=linkJointAxis, physicsClientId=env.id)
+    return Body(body, env, controllable_joints=[0, 1, 2])
