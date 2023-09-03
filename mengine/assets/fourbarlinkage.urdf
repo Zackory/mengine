@@ -33,9 +33,9 @@
 
   <link name="link3">
     <visual>
-     <origin xyz="0 0 0.1" rpy="0 0 0"/>
+     <origin xyz="0 0 0.05" rpy="0 0 0"/>
       <geometry>
-        <capsule length="0.2" radius="0.02"/>
+        <capsule length="0.1" radius="0.02"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -55,6 +55,7 @@
 
   <link name="link6"/>
 
+  <link name="link_ee"/>
 
   <!-- Define joints -->
   <joint name="joint1" type="revolute">
@@ -76,7 +77,7 @@
   <joint name="joint3" type="revolute">
     <parent link="link3"/>
     <child link="link4"/>
-    <origin xyz="0 0 0.2" rpy="0 0 0"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit effort="100" velocity="10"/>
   </joint>
@@ -93,6 +94,14 @@
     <parent link="link2"/>
     <child link="link6"/>
     <origin xyz="0 0 0.2" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" velocity="10"/>
+  </joint>
+
+  <joint name="joint_ee" type="revolute">
+    <parent link="link4"/>
+    <child link="link_ee"/>
+    <origin xyz="0 -0.4 0" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit effort="100" velocity="10"/>
   </joint>
