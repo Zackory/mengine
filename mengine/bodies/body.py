@@ -2,7 +2,7 @@ import numpy as np
 import pybullet as p
 
 class Body:
-    def __init__(self, body, env, controllable_joints=None):
+    def __init__(self, body, env, controllable_joints=None, collision_shape=None, visual_shape=None):
         self.base = -1
         self.lower_limits = None
         self.upper_limits = None
@@ -17,6 +17,8 @@ class Body:
         self.id = env.id
         self.all_joints = list(range(p.getNumJoints(body, physicsClientId=self.id)))
         self.controllable_joints = controllable_joints
+        self.collision_shape = collision_shape
+        self.visual_shape = visual_shape
         if controllable_joints is not None:
             self.update_joint_limits()
             self.enforce_joint_limits()
@@ -280,6 +282,12 @@ class Body:
 
     def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0]):
         return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, self.get_quaternion(parent_orient), self.get_quaternion(child_orient), physicsClientId=self.id)
+
+    def change_visual(self, link=-1, rgba=None, specular_color=None):
+        if rgba is not None:
+            p.changeVisualShape(self.body, link, rgbaColor=rgba, physicsClientId=self.id)
+        if specular_color is not None:
+            p.changeVisualShape(self.body, link, specularColor=specular_color, physicsClientId=self.id)
 
     def update_joint_limits(self, joints=None):
         if joints is None:

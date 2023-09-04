@@ -1,5 +1,6 @@
 import os, time
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 from screeninfo import get_monitors
 import pybullet as p
 
@@ -120,7 +121,7 @@ def get_euler(quaternion, env=None):
 
 def get_quaternion(euler, env=None):
     env = env if env is not None else envir
-    return np.array(euler) if len(euler) == 4 else np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=env.id))
+    return R.from_matrix(euler).as_quat() if np.array(euler).ndim > 1 else (np.array(euler) if len(euler) == 4 else np.array(p.getQuaternionFromEuler(np.array(euler), physicsClientId=env.id)))
 
 def get_rotation_matrix(quaternion, env=None):
     env = env if env is not None else envir
@@ -185,7 +186,7 @@ def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 
     if return_collision_visual:
         return collision, visual
     body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=get_quaternion(orientation), useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
-    return Body(body, env)
+    return Body(body, env, collision_shape=collision, visual_shape=visual)
 
 def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, env=None):
     env = env if env is not None else envir
@@ -196,7 +197,7 @@ def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0,
     shape_ids = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=positions[0], baseOrientation=get_quaternion(orientation), batchPositions=positions, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
     shapes = []
     for body in shape_ids:
-        shapes.append(Body(body, env))
+        shapes.append(Body(body, env, collision_shape=collision, visual_shape=visual))
     return shapes
 
 def URDF(filename, static=False, position=[0, 0, 0], orientation=[0, 0, 0, 1], maximal_coordinates=False, env=None):
