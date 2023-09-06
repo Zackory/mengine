@@ -12,7 +12,7 @@ env.set_gui_camera(look_at_pos=[0, 0, 0])
 # rpy1 = [np.pi/4, np.pi/4, 0]
 rpy1 = [0, 0, 0]
 rpy2 = [-np.pi/4, 0, np.pi/4]
-cf1 = m.visualize_coordinate_frame(position=[0, 0, 0], orientation=rpy1, alpha=0.5)
+cf1 = m.visualize_coordinate_frame(position=[0, 0, 0], orientation=rpy1, alpha=0.25)
 cf2 = m.visualize_coordinate_frame(position=[0, 0, 0], orientation=rpy2)
 
 # Compute rotation matrix between these two frames
@@ -22,7 +22,7 @@ R_BA = R_AB.T
 
 # Create a point in coordinate frame 1
 x_A = [0.1, 0.2, 0]
-point = m.Shape(m.Sphere(radius=0.02), static=True, position=x_A, rgba=[1, 0, 0, 0.5])
+point = m.Shape(m.Sphere(radius=0.02), static=True, position=x_A, rgba=[1, 0, 0, 0.25])
 
 # Transform while remaining in frame A
 x_A_new = R_AB.dot(x_A)
