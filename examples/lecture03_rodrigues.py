@@ -6,17 +6,17 @@ import mengine as m
 env = m.Env()
 ground = m.Ground()
 
-# Create axis
-axis = m.Shape(m.Cylinder(radius=0.02, length=0.5), static=True, position=[0, 0, 1], orientation=[-np.pi/4, -np.pi/4, 0], rgba=[0.8, 0.8, 0.8, 1])
-
 # Create point to rotate around axis
 point = m.Shape(m.Sphere(radius=0.02), static=True, position=[0.1, 0.1, 1.1], rgba=[1, 0, 0, 1])
 
-# Define axis as point on top - point on bottom of axis
-origin = axis.get_base_pos_orient()[0]
-n = axis.local_to_global_coordinate_frame(pos=[0, 0, 0.25])[0] - axis.local_to_global_coordinate_frame(pos=[0, 0, -0.25])[0]
+# Define an origin, direction vector n, and vector x from origin to point
+origin = np.array([0, 0, 1])
+n = np.array([-0.5, 1, 0.5])
 n = n / np.linalg.norm(n) # normalize
 x = point.get_base_pos_orient()[0] - origin
+
+# Create axis
+axis = m.Line(origin - n/3, origin + n/3, radius=0.02, rgba=[0.8, 0.8, 0.8, 1])
 
 for i in range(10000):
     theta = np.radians(i)
