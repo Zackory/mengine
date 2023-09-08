@@ -127,6 +127,12 @@ def get_rotation_matrix(quaternion, env=None):
     env = env if env is not None else envir
     return np.array(p.getMatrixFromQuaternion(get_quaternion(quaternion), physicsClientId=env.id)).reshape((3,3))
 
+def get_axis_angle(quaternion, env=None):
+    env = env if env is not None else envir
+    q = get_quaternion(quaternion)
+    sqrt = np.sqrt(1-q[-1]**2)
+    return np.array([q[0]/sqrt, q[1]/sqrt, q[2]/sqrt]), 2*np.arccos(q[-1])
+
 def get_difference_quaternion(q1, q2, env=None):
     env = env if env is not None else envir
     return p.getDifferenceQuaternion(get_quaternion(q1), get_quaternion(q2), physicsClientId=env.id)
