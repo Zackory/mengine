@@ -10,6 +10,7 @@ class Panda(Robot):
         # body = p.loadURDF(os.path.join(env.directory, 'panda', 'panda.urdf'), useFixedBase=fixed_base, basePosition=position, baseOrientation=orientation, flags=p.URDF_USE_SELF_COLLISION, physicsClientId=env.id)
         body = p.loadURDF(os.path.join(env.directory, 'panda', 'panda.urdf'), useFixedBase=fixed_base, basePosition=position, baseOrientation=orientation, physicsClientId=env.id)
         super().__init__(body, env, controllable_joints, end_effector, gripper_joints)
+        self.set_joint_angles([-1.39, -1.83, -1.42, -2.27, -1.68, 1.29, -1.50, 0, 0, 0, 0, 0])
 
         # Close gripper
         self.set_gripper_position([0]*2, set_instantly=True)
