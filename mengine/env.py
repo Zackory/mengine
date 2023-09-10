@@ -185,10 +185,10 @@ class Mesh(Obj):
     def __init__(self, filename='', scale=[1, 1, 1]):
         super().__init__(type=p.GEOM_MESH, filename=filename, scale=scale)
 
-def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, env=None):
+def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, position_offset=[0, 0, 0], orientation_offset=[0, 0, 0, 1], env=None):
     env = env if env is not None else envir
-    collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, physicsClientId=env.id) if collision else -1
-    visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, physicsClientId=env.id) if visual else -1
+    collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, collisionFramePosition=position_offset, collisionFrameOrientation=orientation_offset, physicsClientId=env.id) if collision else -1
+    visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, visualFramePosition=position_offset, visualFrameOrientation=orientation_offset, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
         return collision, visual
     body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=get_quaternion(orientation), useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
@@ -292,3 +292,44 @@ def clear_all_visual_items(env=None):
     env.visual_items = []
     # p.removeAllUserDebugItems(physicsClientId=env.id)
 
+def salisbury_hand(finger_length=0.075, env=None):
+    env = env if env is not None else envir
+
+    length = finger_length
+
+    link_c1, link_v1 = Shape(Box(half_extents=[0.1, 0.05, 0.01]), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, 0])
+    link_c2, link_v2 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+    link_c3, link_v3 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+    link_c4, link_v4 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+
+    link_c5, link_v5 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+    link_c6, link_v6 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+    link_c7, link_v7 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+
+    link_c8, link_v8 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+    link_c9, link_v9 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+    link_c10, link_v10 = Shape(Capsule(radius=0.01, length=length), visual=True, collision=True, rgba=[1, 1, 1, 1], return_collision_visual=True, position_offset=[0, 0, length/2])
+
+    link_p1, link_o1 = [0, 0, 0], get_quaternion([0, 0, 0])
+    link_p2, link_o2 = [-0.08, 0.02, 0.01], get_quaternion([0, 0, 0])
+    link_p3, link_o3 = [0, 0, length], get_quaternion([0, 0, np.pi])
+    link_p4, link_o4 = [0, 0, length], get_quaternion([0, 0, 0])
+
+    link_p5, link_o5 = [0, -0.02, 0.01], get_quaternion([0, 0, 0])
+    link_p8, link_o8 = [0.08, 0.02, 0.01], get_quaternion([0, 0, 0])
+
+    linkMasses = [1]*9
+    linkCollisionShapeIndices = [link_c2, link_c3, link_c4, link_c5, link_c6, link_c7, link_c8, link_c9, link_c10]
+    linkVisualShapeIndices = [link_v2, link_v3, link_v4, link_v5, link_v6, link_v7, link_v8, link_v9, link_v10]
+    linkPositions = [link_p2, link_p3, link_p4, link_p5, link_p3, link_p4, link_p8, link_p3, link_p4]
+    linkOrientations = [link_o2, link_o3, link_o4, link_o5, link_o3, link_o4, link_o8, link_o3, link_o4]
+    linkInertialFramePositions = [[0, 0, 0]]*9
+    linkInertialFrameOrientations = [[0, 0, 0, 1]]*9
+    linkParentIndices = [0, 1, 2, 0, 4, 5, 0, 7, 8]
+    linkJointTypes = [p.JOINT_REVOLUTE]*9
+    linkJointAxis =[[0, 0, 1], [1, 0, 0], [1, 0, 0]]*3
+
+    multibody = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=link_c1, baseVisualShapeIndex=link_v1, basePosition=link_p1, baseOrientation=link_o1, linkMasses=linkMasses, linkCollisionShapeIndices=linkCollisionShapeIndices, linkVisualShapeIndices=linkVisualShapeIndices, linkPositions=linkPositions, linkOrientations=linkOrientations, linkInertialFramePositions=linkInertialFramePositions, linkInertialFrameOrientations=linkInertialFrameOrientations, linkParentIndices=linkParentIndices, linkJointTypes=linkJointTypes, linkJointAxis=linkJointAxis, physicsClientId=env.id)
+    body = Body(multibody, env)
+    body.controllable_joints = list(range(9))
+    return body

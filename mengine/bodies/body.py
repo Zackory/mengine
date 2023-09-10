@@ -77,15 +77,15 @@ class Body:
         else:
             return np.array(pos), np.array(orient)
 
-    def global_to_local_coordinate_frame(self, pos, orient=[0, 0, 0, 1], rotation_only=False):
-        base_pos, base_orient = self.get_base_pos_orient()
-        base_pos_inv, base_orient_inv = p.invertTransform(base_pos, base_orient, physicsClientId=self.id)
-        real_pos, real_orient = p.multiplyTransforms(base_pos_inv if not rotation_only else [0, 0, 0], base_orient_inv, pos, self.get_quaternion(orient), physicsClientId=self.id)
+    def global_to_local_coordinate_frame(self, pos, orient=[0, 0, 0, 1], link=-1, rotation_only=False):
+        link_pos, link_orient = self.get_base_pos_orient() if link == self.base else self.get_link_pos_orient(link)
+        link_pos_inv, link_orient_inv = p.invertTransform(link_pos, link_orient, physicsClientId=self.id)
+        real_pos, real_orient = p.multiplyTransforms(link_pos_inv if not rotation_only else [0, 0, 0], link_orient_inv, pos, self.get_quaternion(orient), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
-    def local_to_global_coordinate_frame(self, pos, orient=[0, 0, 0, 1], rotation_only=False):
-        base_pos, base_orient = self.get_base_pos_orient()
-        real_pos, real_orient = p.multiplyTransforms(base_pos if not rotation_only else [0, 0, 0], base_orient, pos, self.get_quaternion(orient), physicsClientId=self.id)
+    def local_to_global_coordinate_frame(self, pos, orient=[0, 0, 0, 1], link=-1, rotation_only=False):
+        link_pos, link_orient = self.get_base_pos_orient() if link == self.base else self.get_link_pos_orient(link)
+        real_pos, real_orient = p.multiplyTransforms(link_pos if not rotation_only else [0, 0, 0], link_orient, pos, self.get_quaternion(orient), physicsClientId=self.id)
         return np.array(real_pos), np.array(real_orient)
 
     def get_base_pos_orient(self):
@@ -280,8 +280,11 @@ class Body:
     def apply_external_torque(self, link=-1, torque=[0,0,0], pos=[0,0,0], local_coordinate_frame=False):
         p.applyExternalTorque(self.body, link, torque, pos, p.LINK_FRAME if local_coordinate_frame else p.WORLD_FRAME, physicsClientId=self.id)
 
-    def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0]):
-        return p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, self.get_quaternion(parent_orient), self.get_quaternion(child_orient), physicsClientId=self.id)
+    def create_constraint(self, parent_link, child, child_link, joint_type=p.JOINT_FIXED, joint_axis=[0, 0, 0], parent_pos=[0, 0, 0], child_pos=[0, 0, 0], parent_orient=[0, 0, 0], child_orient=[0, 0, 0], force=None):
+        constraint = p.createConstraint(self.body, parent_link, child.body, child_link, joint_type, joint_axis, parent_pos, child_pos, self.get_quaternion(parent_orient), self.get_quaternion(child_orient), physicsClientId=self.id)
+        if force is not None:
+            p.changeConstraint(constraint, maxForce=force)
+        return constraint
 
     def change_visual(self, link=-1, rgba=None, specular_color=None):
         if rgba is not None:
