@@ -53,3 +53,5 @@ plt.ylabel('quaternion distance from identity')
 plt.tight_layout()
 plt.show()
 
+# NOTE: Issue! All rotations end up at the same starting location, but they have non-zero metric distance!
+

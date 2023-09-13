@@ -81,6 +81,14 @@ def step_simulation(steps=1, realtime=True, env=None):
         if realtime and env.render:
             env.slow_time()
 
+def compute_collision_detection(env=None):
+    env = env if env is not None else envir
+    p.performCollisionDetection(physicsClientId=env.id)
+
+def redraw(env=None):
+    env = env if env is not None else envir
+    p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1, physicsClientId=env.id)
+
 def get_keys():
     specials = {p.B3G_ALT: 'alt', p.B3G_SHIFT: 'shift', p.B3G_CONTROL: 'control', p.B3G_RETURN: 'return', p.B3G_LEFT_ARROW: 'left_arrow', p.B3G_RIGHT_ARROW: 'right_arrow', p.B3G_UP_ARROW: 'up_arrow', p.B3G_DOWN_ARROW: 'down_arrow'}
     # return {chr(k) if k not in specials else specials[k] : v for k, v in p.getKeyboardEvents().items()}
@@ -188,7 +196,10 @@ class Mesh(Obj):
 def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, position_offset=[0, 0, 0], orientation_offset=[0, 0, 0, 1], env=None):
     env = env if env is not None else envir
     collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, collisionFramePosition=position_offset, collisionFrameOrientation=orientation_offset, physicsClientId=env.id) if collision else -1
-    visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, visualFramePosition=position_offset, visualFrameOrientation=orientation_offset, physicsClientId=env.id) if visual else -1
+    if rgba is not None:
+        visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, visualFramePosition=position_offset, visualFrameOrientation=orientation_offset, physicsClientId=env.id) if visual else -1
+    else:
+        visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, visualFramePosition=position_offset, visualFrameOrientation=orientation_offset, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
         return collision, visual
     body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=get_quaternion(orientation), useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
@@ -226,7 +237,7 @@ def Line(start, end, radius=0.005, rgba=None, rgb=[1, 0, 0], replace_line=None, 
     v1 = np.array([0, 0, 1])
     v2 = np.array(end) - start
     orientation = np.cross(v1, v2).tolist() + [np.sqrt((np.linalg.norm(v1)**2) * (np.linalg.norm(v2)**2)) + np.dot(v1, v2)]
-    orientation = orientation / np.linalg.norm(orientation)
+    orientation = [0, 0, 0, 1] if np.linalg.norm(orientation) == 0 else orientation / np.linalg.norm(orientation)
     if replace_line is not None:
         # p.removeBody(replace_line.body, env.id)
         # for i in range(len(env.visual_items)):
@@ -240,6 +251,7 @@ def Line(start, end, radius=0.005, rgba=None, rgb=[1, 0, 0], replace_line=None, 
         return replace_line
     else:
         l = Shape(Cylinder(radius=radius, length=np.linalg.norm(np.array(end)-start)), static=True, position=start + (np.array(end)-start)/2, orientation=orientation, collision=False, rgba=rgba)
+        print('Line:', np.linalg.norm(np.array(end)-start), start + (np.array(end)-start)/2, orientation)
         env.visual_items.append(l)
         return l
 
