@@ -114,14 +114,48 @@ class Camera:
         self.projection_matrix = p.computeProjectionMatrixFOV(self.fov, self.camera_width / self.camera_height, 0.01, 100, physicsClientId=self.env.id)
 
     def get_rgba_depth(self, light_pos=[0, -3, 1], shadow=False, ambient=0.8, diffuse=0.3, specular=0.1):
-        w, h, img, depth, _ = p.getCameraImage(self.camera_width, self.camera_height, self.view_matrix, self.projection_matrix, lightDirection=light_pos, shadow=shadow, lightAmbientCoeff=ambient, lightDiffuseCoeff=diffuse, lightSpecularCoeff=specular, renderer=p.ER_BULLET_HARDWARE_OPENGL, physicsClientId=self.env.id)
+        w, h, img, depth, segmentation_mask = p.getCameraImage(self.camera_width, self.camera_height, self.view_matrix, self.projection_matrix, lightDirection=light_pos, shadow=shadow, lightAmbientCoeff=ambient, lightDiffuseCoeff=diffuse, lightSpecularCoeff=specular, renderer=p.ER_BULLET_HARDWARE_OPENGL, physicsClientId=self.env.id)
         img = np.reshape(img, (h, w, 4))
         depth = np.reshape(depth, (h, w))
-        return img, depth
+        segmentation_mask = np.reshape(segmentation_mask, (h, w))
+        return img, depth, segmentation_mask
 
-def get_rgba_depth(light_pos=[0, -3, 1], shadow=False, ambient=0.8, diffuse=0.3, specular=0.1, env=None):
-    env = env if env is not None else envir
-    return env.camera.get_rgba_depth(light_pos=light_pos, shadow=shadow, ambient=ambient, diffuse=diffuse, specular=specular)
+    def get_point_cloud(self, body=None):
+        # get a depth image
+        rgba, depth, segmentation_mask = self.get_rgba_depth()
+        rgba = rgba.reshape((-1, 4))
+        depth = depth.flatten()
+        segmentation_mask = segmentation_mask.flatten()
+
+        # create a 4x4 transform matrix that goes from pixel coordinates (and depth values) to world coordinates
+        proj_matrix = np.asarray(self.projection_matrix).reshape([4, 4], order="F")
+        view_matrix = np.asarray(self.view_matrix).reshape([4, 4], order="F")
+        tran_pix_world = np.linalg.inv(np.matmul(proj_matrix, view_matrix))
+
+        # create a grid with pixel coordinates and depth values
+        y, x = np.mgrid[-1:1:2 / self.camera_height, -1:1:2 / self.camera_width]
+        y *= -1.
+        x, y, z = x.reshape(-1), y.reshape(-1), depth
+        h = np.ones_like(z)
+
+        pixels = np.stack([x, y, z, h], axis=1)
+
+        # Filter point cloud to only include points on the target body
+        pixels = pixels[segmentation_mask == body.body]
+        z = z[segmentation_mask == body.body]
+        rgba = rgba[segmentation_mask == body.body]
+
+        # filter out "infinite" depths
+        pixels = pixels[z < 0.99]
+        rgba = rgba[z < 0.99]
+        pixels[:, 2] = 2 * pixels[:, 2] - 1
+
+        # turn pixels to world coordinates
+        points = np.matmul(tran_pix_world, pixels.T).T
+        points /= points[:, 3: 4]
+        points = points[:, :3]
+
+        return points, rgba/255
 
 def get_euler(quaternion, env=None):
     env = env if env is not None else envir
@@ -205,10 +239,13 @@ def Shape(shape, static=False, mass=1.0, position=[0, 0, 0], orientation=[0, 0, 
     body = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=position, baseOrientation=get_quaternion(orientation), useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
     return Body(body, env, collision_shape=collision, visual_shape=visual)
 
-def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, env=None):
+def Shapes(shape, static=False, mass=1.0, positions=[[0, 0, 0]], orientation=[0, 0, 0, 1], visual=True, collision=True, rgba=[0, 1, 1, 1], maximal_coordinates=False, return_collision_visual=False, position_offset=[0, 0, 0], orientation_offset=[0, 0, 0, 1], env=None):
     env = env if env is not None else envir
-    collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, physicsClientId=env.id) if collision else -1
-    visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, physicsClientId=env.id) if visual else -1
+    collision = p.createCollisionShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, height=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, collisionFramePosition=position_offset, collisionFrameOrientation=orientation_offset, physicsClientId=env.id) if collision else -1
+    if rgba is not None:
+        visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, rgbaColor=rgba, visualFramePosition=position_offset, visualFrameOrientation=orientation_offset, physicsClientId=env.id) if visual else -1
+    else:
+        visual = p.createVisualShape(shapeType=shape.type, radius=shape.radius, halfExtents=shape.half_extents, length=shape.length, fileName=shape.filename, meshScale=shape.scale, planeNormal=shape.normal, visualFramePosition=position_offset, visualFrameOrientation=orientation_offset, physicsClientId=env.id) if visual else -1
     if return_collision_visual:
         return collision, visual
     shape_ids = p.createMultiBody(baseMass=0 if static else mass, baseCollisionShapeIndex=collision, baseVisualShapeIndex=visual, basePosition=positions[0], baseOrientation=get_quaternion(orientation), batchPositions=positions, useMaximalCoordinates=maximal_coordinates, physicsClientId=env.id)
@@ -228,7 +265,6 @@ def Ground(position=[0, 0, 0], orientation=[0, 0, 0, 1], env=None):
     # Randomly set friction of the ground
     # self.ground.set_frictions(self.ground.base, lateral_friction=self.np_random.uniform(0.025, 0.5), spinning_friction=0, rolling_friction=0)
 
-
 def Line(start, end, radius=0.005, rgba=None, rgb=[1, 0, 0], replace_line=None, env=None):
     env = env if env is not None else envir
     if rgba is None:
@@ -239,34 +275,38 @@ def Line(start, end, radius=0.005, rgba=None, rgb=[1, 0, 0], replace_line=None, 
     orientation = np.cross(v1, v2).tolist() + [np.sqrt((np.linalg.norm(v1)**2) * (np.linalg.norm(v2)**2)) + np.dot(v1, v2)]
     orientation = [0, 0, 0, 1] if np.linalg.norm(orientation) == 0 else orientation / np.linalg.norm(orientation)
     if replace_line is not None:
-        # p.removeBody(replace_line.body, env.id)
-        # for i in range(len(env.visual_items)):
-        #     if env.visual_items[i] == replace_line:
-        #         del env.visual_items[i]
-        #         break
-        # l = Shape(Cylinder(radius=radius, length=np.linalg.norm(np.array(end)-start)), static=True, position=start + (np.array(end)-start)/2, orientation=orientation, collision=False, rgba=rgba)
-        # env.visual_items.append(l)
-        # return l
         replace_line.set_base_pos_orient(start + (np.array(end)-start)/2, orientation)
         return replace_line
     else:
         l = Shape(Cylinder(radius=radius, length=np.linalg.norm(np.array(end)-start)), static=True, position=start + (np.array(end)-start)/2, orientation=orientation, collision=False, rgba=rgba)
-        print('Line:', np.linalg.norm(np.array(end)-start), start + (np.array(end)-start)/2, orientation)
         env.visual_items.append(l)
         return l
 
-def Points(point_positions, points_rgb=[1, 0, 0], size=0.5, replace_points=None, env=None):
+def Points(point_positions, rgba=[1, 0, 0, 1], radius=0.01, replace_points=None, env=None):
     env = env if env is not None else envir
-    if type(point_positions[0]) not in (list, tuple):
+    if type(point_positions[0]) not in (list, tuple, np.ndarray):
         point_positions = [point_positions]
-    if type(points_rgb[0]) not in (list, tuple):
+    if replace_points is not None:
+        for i in range(len(point_positions)):
+            replace_points[i].set_base_pos_orient(point_positions[i])
+            return replace_points
+    else:
+        points = Shapes(Sphere(radius=radius), static=True, positions=point_positions, orientation=[0, 0, 0, 1], visual=True, collision=False, rgba=rgba)
+        return points
+
+def DebugPoints(point_positions, points_rgb=[[0, 0, 0, 1]], size=10, replace_points=None, env=None):
+    env = env if env is not None else envir
+    if type(point_positions[0]) not in (list, tuple, np.ndarray):
+        point_positions = [point_positions]
+    if type(points_rgb[0]) not in (list, tuple, np.ndarray):
         points_rgb = [points_rgb]*len(point_positions)
-    points = -1
-    while points < 0:
-        if replace_points is None:
-            points = p.addUserDebugPoints(pointPositions=point_positions, pointColorsRGB=points_rgb, pointSize=size, lifeTime=0, physicsClientId=env.id)
-        else:
-            points = p.addUserDebugPoints(pointPositions=point_positions, pointColorsRGB=points_rgb, pointSize=size, lifeTime=0, replaceItemUniqueId=replace_points, physicsClientId=env.id)
+    for i in range(len(point_positions)//4000 + 1):
+        points = -1
+        while points < 0:
+            if replace_points is None:
+                points = p.addUserDebugPoints(pointPositions=point_positions[i*4000:(i+1)*4000], pointColorsRGB=points_rgb[i*4000:(i+1)*4000], pointSize=size, lifeTime=0, physicsClientId=env.id)
+            else:
+                points = p.addUserDebugPoints(pointPositions=point_positions[i*4000:(i+1)*4000], pointColorsRGB=points_rgb[i*4000:(i+1)*4000], pointSize=size, lifeTime=0, replaceItemUniqueId=replace_points, physicsClientId=env.id)
     return points
 
 def visualize_coordinate_frame(position=[0, 0, 0], orientation=[0, 0, 0, 1], alpha=1.0, replace_old_cf=None, env=None):

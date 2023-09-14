@@ -28,17 +28,21 @@ for i in range(360):
     p = np.array([0, 0, 0, 1])
 
     q = m.get_quaternion([np.radians(i), 0, 0])
+    print(q)
     point_x.set_base_pos_orient(m.rotate_point(x, q))
     x_dist.append(np.linalg.norm(p-q))
+    # x_dist.append(min(np.linalg.norm(p-q), np.linalg.norm(p+q)))
 
     # NOTE: Question for class: why does this provide the same distance measure as [np.radians(i), 0, 0]?
     q = m.get_quaternion([0, np.radians(i), 0])
     point_y.set_base_pos_orient(m.rotate_point(x, q))
     y_dist.append(np.linalg.norm(p-q))
+    # y_dist.append(min(np.linalg.norm(p-q), np.linalg.norm(p+q)))
 
     q = m.get_quaternion([0, 0, np.radians(i)])
     point_z.set_base_pos_orient(m.rotate_point(x, q))
     z_dist.append(np.linalg.norm(p-q))
+    # z_dist.append(min(np.linalg.norm(p-q), np.linalg.norm(p+q)))
 
     m.step_simulation(realtime=True)
 
