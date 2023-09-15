@@ -31,26 +31,21 @@ mustard.change_visual(link=mustard.base, rgba=[1, 1, 1, 0])
 # Create open3d point cloud from array of points
 pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(pc)
-
-pcd_tree = o3d.geometry.KDTreeFlann(pcd)
-
-# Paint the 1500th point red.
 pcd.colors = o3d.utility.Vector3dVector(rgba[:, :3])
-pcd.colors[1500] = [1, 0, 0]
-
-# Find its 150 nearest neighbors, paint blue.
-[k, idx, _] = pcd_tree.search_knn_vector_3d(pcd.points[1500], 150)
-np.asarray(pcd.colors)[idx[1:], :] = [0, 0, 1]
-
-# Find its neighbors with distance less than 0.005, paint green.
-[k, idx, _] = pcd_tree.search_radius_vector_3d(pcd.points[1500], 0.005)
-np.asarray(pcd.colors)[idx[1:], :] = [0, 1, 0]
 
 # Estimate normals for each point
 pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
 print('First normal:', pcd.normals[0])
 
 # Visualize point cloud. Press 'n' to see normals
-o3d.visualization.draw_geometries([pcd])
+o3d.visualization.draw_geometries([pcd], front=[-0.28, -0.76, 0.59], lookat=[0, -0.01, 0.85], up=[0.18, 0.56, 0.81], zoom=0.7)
+
+# Visualize voxelization
+voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcd, voxel_size=0.005)
+o3d.visualization.draw_geometries([voxel_grid], front=[-0.28, -0.76, 0.59], lookat=[0, -0.01, 0.85], up=[0.18, 0.56, 0.81], zoom=0.7)
+
+# Visualize downsampled point cloud
+downpcd = pcd.voxel_down_sample(voxel_size=0.005)
+o3d.visualization.draw_geometries([downpcd], front=[-0.28, -0.76, 0.59], lookat=[0, -0.01, 0.85], up=[0.18, 0.56, 0.81], zoom=0.7)
 
 m.step_simulation(steps=10000, realtime=True)

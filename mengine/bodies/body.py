@@ -191,6 +191,10 @@ class Body:
             self.set_on_ground(base_height)
         return height, base_height
 
+    def get_AABB(self, link=-1):
+        min_pos, max_pos = p.getAABB(self.body, link, physicsClientId=self.id)
+        return min_pos, max_pos
+
     def get_force_torque_sensor(self, joint):
         return np.array(p.getJointState(self.body, joint, physicsClientId=self.id)[2])
 

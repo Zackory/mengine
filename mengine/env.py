@@ -287,7 +287,7 @@ def Points(point_positions, rgba=[1, 0, 0, 1], radius=0.01, replace_points=None,
     if type(point_positions[0]) not in (list, tuple, np.ndarray):
         point_positions = [point_positions]
     if replace_points is not None:
-        for i in range(len(point_positions)):
+        for i in range(min(len(point_positions), len(replace_points))):
             replace_points[i].set_base_pos_orient(point_positions[i])
             return replace_points
     else:
@@ -343,6 +343,10 @@ def clear_all_visual_items(env=None):
         p.removeBody(item.body, env.id)
     env.visual_items = []
     # p.removeAllUserDebugItems(physicsClientId=env.id)
+
+def clear_all_debug_items(env=None):
+    env = env if env is not None else envir
+    p.removeAllUserDebugItems(physicsClientId=env.id)
 
 def salisbury_hand(finger_length=0.075, env=None):
     env = env if env is not None else envir
