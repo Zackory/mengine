@@ -28,6 +28,7 @@ m.step_simulation(steps=30, realtime=True)
 
 # Plot instantaneous rotation center
 for i in range(100):
+    # Perform a rotation around a non-zero rotation center
     p2, q2 = m.multiply_transforms(rotation_center, [0, 0, np.radians(i+1)], p-rotation_center, q)
     cube.set_base_pos_orient(p2, q2)
 
