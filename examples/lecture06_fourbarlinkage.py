@@ -23,7 +23,7 @@ lines = []
 for link in links:
     global_points.append(fbl.get_link_pos_orient(link)[0])
     previous_global_points.append(global_points[-1])
-    point = m.Shape(m.Sphere(radius=0.02), static=True, position=global_points[-1], rgba=[0, 0, 1, 1])
+    point = m.Shape(m.Sphere(radius=0.02), static=True, collision=False, position=global_points[-1], rgba=[0, 0, 1, 1])
 
 for i in range(10000):
     fbl.control([np.radians(i)]*3)
