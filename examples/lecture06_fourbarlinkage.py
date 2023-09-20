@@ -15,13 +15,14 @@ m.step_simulation(steps=20, realtime=False)
 
 coupler_links = [1, 3, 5]
 
-links = [1, 3]
+links = [[1, 0], [3, 0]]
+# links = [[1, 0], [3, 0], [3, -0.05]]
 global_points = []
 previous_global_points = []
 lines = []
 
-for link in links:
-    global_points.append(fbl.get_link_pos_orient(link)[0])
+for [link, offset] in links:
+    global_points.append(fbl.local_to_global_coordinate_frame([0, offset, 0], link=link)[0])
     previous_global_points.append(global_points[-1])
     point = m.Shape(m.Sphere(radius=0.02), static=True, collision=False, position=global_points[-1], rgba=[0, 0, 1, 1])
 
@@ -36,9 +37,10 @@ for i in range(10000):
             color[j] = 1
             m.Shape(m.Sphere(radius=0.005), static=True, position=p, collision=False, rgba=color)
 
-    if i > 3:
-        for j, (link, global_position, previous_global_position) in enumerate(zip(links, global_points, previous_global_points)):
-            p_new = fbl.get_link_pos_orient(link)[0]
+    if i > 3: # Ignore the first few time steps so that we can compute delta changes in position
+        for j, (link_offset, global_position, previous_global_position) in enumerate(zip(links, global_points, previous_global_points)):
+            # p_new = fbl.get_link_pos_orient(link)[0]
+            p_new = fbl.local_to_global_coordinate_frame([0, link_offset[1], 0], link=link_offset[0])[0]
             ic_vector_of_motion = p_new - previous_global_position
             ic_bisector = np.cross(ic_vector_of_motion, [0,1,0])
             ic_bisector = ic_bisector / np.linalg.norm(ic_bisector)
