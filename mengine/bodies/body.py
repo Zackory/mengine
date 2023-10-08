@@ -171,6 +171,8 @@ class Body:
         if linkB is not None:
             args['linkIndexB'] = linkB
         cp = p.getClosestPoints(**args)
+        if cp is None:
+            return [], [], [], [], []
         linkA = [c[3] for c in cp]
         linkB = [c[4] for c in cp]
         posA = [c[5] for c in cp]
