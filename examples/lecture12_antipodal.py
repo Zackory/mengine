@@ -81,7 +81,7 @@ while True:
     target_joint_angles = robot.ik(robot.end_effector, target_pos=position, target_orient=m.get_quaternion(orientation), use_current_joint_angles=True)
     robot.control(target_joint_angles)
 
-    # Update out antipodal region of interest
+    # Update our antipodal region of interest
     p, o = robot.get_link_pos_orient(robot.end_effector)
     antipodal_region.set_base_pos_orient(p, o)
 

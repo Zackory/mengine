@@ -29,7 +29,7 @@ for i in range(150):
 
     m.step_simulation()
 
-    # Show position of applied force and a line indicating the applied velocity
+    # Show position of applied force and a line indicating the applied force magnitude
     pos_global = cube.local_to_global_coordinate_frame(applied_pos)[0]
     force_global = cube.local_to_global_coordinate_frame(applied_force)[0]
     sphere.set_base_pos_orient(pos_global)
