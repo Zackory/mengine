@@ -15,18 +15,18 @@ class PR2(Robot):
         # right_gripper_indices = [57, 58, 59, 60] # Gripper actuated joints
         # left_gripper_indices = [79, 80, 81, 82] # Gripper actuated joints
 
-        body = p.loadURDF(os.path.join(directory, 'PR2', 'pr2_no_torso_lift_tall.urdf'), useFixedBase=fixed_base, basePosition=position, baseOrientation=orientation, flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=env.id)
+        body = p.loadURDF(os.path.join(env.directory, 'PR2', 'pr2_no_torso_lift_tall.urdf'), useFixedBase=fixed_base, basePosition=position, baseOrientation=orientation, flags=p.URDF_USE_INERTIA_FROM_FILE, physicsClientId=env.id)
         super().__init__(body, env, controllable_joints, end_effector, gripper_joints)
 
         # Recolor robot
         for i in [19, 42, 64]:
-            p.changeVisualShape(self.body, i, rgbaColor=[1.0, 1.0, 1.0, 1.0], physicsClientId=id)
+            p.changeVisualShape(self.body, i, rgbaColor=[1.0, 1.0, 1.0, 1.0], physicsClientId=env.id)
         for i in [43, 46, 49, 58, 60, 65, 68, 71, 80, 82]:
-            p.changeVisualShape(self.body, i, rgbaColor=[0.4, 0.4, 0.4, 1.0], physicsClientId=id)
+            p.changeVisualShape(self.body, i, rgbaColor=[0.4, 0.4, 0.4, 1.0], physicsClientId=env.id)
         for i in [45, 51, 67, 73]:
-            p.changeVisualShape(self.body, i, rgbaColor=[0.7, 0.7, 0.7, 1.0], physicsClientId=id)
-        p.changeVisualShape(self.body, 20, rgbaColor=[0.8, 0.8, 0.8, 1.0], physicsClientId=id)
-        p.changeVisualShape(self.body, 40, rgbaColor=[0.6, 0.6, 0.6, 1.0], physicsClientId=id)
+            p.changeVisualShape(self.body, i, rgbaColor=[0.7, 0.7, 0.7, 1.0], physicsClientId=env.id)
+        p.changeVisualShape(self.body, 20, rgbaColor=[0.8, 0.8, 0.8, 1.0], physicsClientId=env.id)
+        p.changeVisualShape(self.body, 40, rgbaColor=[0.6, 0.6, 0.6, 1.0], physicsClientId=env.id)
         # Close gripper
         # self.set_gripper_position([0]*2, set_instantly=True)
 

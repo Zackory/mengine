@@ -8,6 +8,7 @@ __pycache__/
 *.out
 trained_models*
 *.json
+*.swp
 
 # C extensions
 *.so

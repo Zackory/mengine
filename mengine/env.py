@@ -7,6 +7,11 @@ import pybullet as p
 from .util import Util
 from .bodies.body import Body
 from .bodies.panda import Panda
+from .bodies.jaco import Jaco
+from .bodies.baxter import Baxter
+from .bodies.pr2 import PR2
+from .bodies.stretch import Stretch
+from .bodies.kinova_gen3 import KinovaGen3
 
 envir = None
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'assets')
@@ -100,6 +105,31 @@ class Robot:
             env = env if env is not None else envir
             super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
 
+    class Jaco(Jaco):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
+
+    class Baxter(Baxter):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
+
+    class PR2(PR2):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
+
+    class Stretch(Stretch):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
+
+    class KinovaGen3(KinovaGen3):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
+
 class Camera:
     def __init__(self, camera_pos=[0.5, -0.5, 1.5], look_at_pos=[0, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4, env=None):
         self.env = env if env is not None else envir
@@ -141,13 +171,14 @@ class Camera:
         pixels = np.stack([x, y, z, h], axis=1)
 
         # Filter point cloud to only include points on the target body
-        pixels = pixels[segmentation_mask == body.body]
-        z = z[segmentation_mask == body.body]
-        rgba = rgba[segmentation_mask == body.body]
+        if body is not None:
+            pixels = pixels[segmentation_mask == body.body]
+            z = z[segmentation_mask == body.body]
+            rgba = rgba[segmentation_mask == body.body]
 
         # filter out "infinite" depths
-        pixels = pixels[z < 0.99]
-        rgba = rgba[z < 0.99]
+        pixels = pixels[z < 20]
+        rgba = rgba[z < 20]
         pixels[:, 2] = 2 * pixels[:, 2] - 1
 
         # turn pixels to world coordinates
@@ -182,7 +213,7 @@ def get_difference_quaternion(q1, q2, env=None):
 def quaternion_product(q1, q2, env=None):
     env = env if env is not None else envir
     # Return Hamilton product of 2 quaternions
-    return p.multiplyTransforms([0, 0, 0], get_quaternion(q1), [0, 0, 0], q2, physicsClientId=env.id)[1]
+    return p.multiplyTransforms([0, 0, 0], get_quaternion(q1), [0, 0, 0], get_quaternion(q2), physicsClientId=env.id)[1]
 
 def multiply_transforms(p1, q1, p2, q2, env=None):
     env = env if env is not None else envir

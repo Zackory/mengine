@@ -19,7 +19,7 @@ python3 -m pip install mengine@git+https://github.com/Zackory/mengine.git
 ## Example
 ```bash
 cd examples
-python3 example_push.py
+python3 lecture01_pushing.py
 ```
 
 ![Manipulation Engine](images/mengine.jpg "Manipulation Engine")
