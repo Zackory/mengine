@@ -36,7 +36,7 @@ for i in range(50):
     m.step_simulation(realtime=True)
 
     if i % 20 == 0:
-        # Print joint position, velocities, and torques
+        # Print joint position, velocities, torques, F/T, and proximity
         motor_indices, motor_positions, motor_velocities, motor_torques = panda.get_motor_joint_states()
         print('Joint angles:', np.array(motor_positions))
         print('Joint velocities:', np.array(motor_velocities))

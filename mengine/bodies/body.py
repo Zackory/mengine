@@ -23,7 +23,7 @@ class Body:
             self.update_joint_limits()
             self.enforce_joint_limits()
 
-    def control(self, targets, joints=None, gains=None, forces=None, velocity_control=False, set_instantly=False):
+    def control(self, targets, joints=None, gains=None, forces=None, velocity_control=False, torque_control=False, set_instantly=False):
         joints = self.controllable_joints if joints is None else joints
         gains = (self.motor_gains if not velocity_control else 1) if gains is None else gains
         forces = self.motor_forces if forces is None else forces
@@ -31,10 +31,12 @@ class Body:
             gains = [gains]*len(joints)
         if type(forces) in [int, float, np.float64, np.float32]:
             forces = [forces]*len(joints)
-        if not velocity_control:
-            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=targets, positionGains=gains, forces=forces, physicsClientId=self.id)
-        else:
+        if velocity_control:
             p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.VELOCITY_CONTROL, targetVelocities=targets, velocityGains=gains, forces=forces, physicsClientId=self.id)
+        elif torque_control:
+            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.TORQUE_CONTROL, forces=targets, physicsClientId=self.id)
+        else:
+            p.setJointMotorControlArray(self.body, jointIndices=joints, controlMode=p.POSITION_CONTROL, targetPositions=targets, positionGains=gains, forces=forces, physicsClientId=self.id)
         if set_instantly:
             self.set_joint_angles(targets, joints=joints, use_limits=True)
 
@@ -216,6 +218,9 @@ class Body:
 
         linear_jacobian, angular_jacobian = p.calculateJacobian(self.body, link, localPosition=[0]*3, objPositions=joint_positions, objVelocities=joint_velocities, objAccelerations=target_joint_accelerations, physicsClientId=self.id)
         return np.array(linear_jacobian), np.array(angular_jacobian)
+
+    def get_mass_matrix(self):
+        return np.array(p.calculateMassMatrix(self.body, list(self.get_joint_angles(include_fixed_joints=False)), physicsClientId=self.id))
 
     def set_base_pos_orient(self, pos=None, orient=None):
         if pos is None:
