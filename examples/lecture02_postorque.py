@@ -78,5 +78,5 @@ for i in range(100):
 
     m.step_simulation(realtime=True)
 
-m.step_simulation(steps=1000, realtime=True)
+# m.step_simulation(steps=1000, realtime=True)
 
