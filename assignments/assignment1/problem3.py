@@ -65,13 +65,21 @@ def compare_FK(ee_positions, ee_positions_pb, ee_orientations, ee_orientations_p
     print('Average FK orientation error:', orientation_error_sum / len(ee_orientations))
 
 
-def plot_workspace(positions):
-    # Plot the workspace of the robot
-    # input: positions: list of positions of the end effector
-    # ------ TODO Student answer below -------
-    print('TODO plot_workspace')
-    return 0
-    # ------ Student answer above -------
+def plot_point(position):
+    # input: position: list of [x,y,z] position of the end effector
+    m.Shape(m.Sphere(radius=0.01), static=True, position=position, collision=False, rgba=[1, 0, 0, 1])
+
+
+def wait_for_enter():
+    # NOTE: Press enter to continue to next problem
+    print('Press enter in the simulator to continue to the next problem')
+    keys = m.get_keys()
+    while True:
+        keys = m.get_keys()
+        if 'return' in keys:
+            break
+        m.step_simulation(realtime=True)
+    m.step_simulation(steps=50, realtime=True)
 
 
 def check_collision(q, box_position, box_half_extents):
@@ -114,12 +122,7 @@ for i in range(100):
 compare_FK(ee_positions, ee_positions_pb, ee_orientations, ee_orientations_pb)
 
 # NOTE: Press enter to continue to problem 3.2
-keys = m.get_keys()
-while True:
-    keys = m.get_keys()
-    if 'return' in keys:
-        break
-    m.step_simulation(realtime=True)
+wait_for_enter()
 
 
 # ##########################################
@@ -131,22 +134,20 @@ while True:
 for i in range(1000):
     # sample a random configuration q
     # TODO
+
     # move robot into configuration q
     robot.control(q, set_instantly=True)
     m.step_simulation(realtime=True)
+
     # calculate ee_position, ee_orientation using calculate_FK
     # TODO
+
     # plot workspace as points of the end effector
-    # TODO
+    plot_point(ee_position)
 # ------ Student answer above -------
 
 # NOTE: Press enter to continue to problem 3.3
-keys = m.get_keys()
-while True:
-    keys = m.get_keys()
-    if 'return' in keys:
-        break
-    m.step_simulation(realtime=True)
+wait_for_enter()
 
 
 # ##########################################
@@ -194,3 +195,4 @@ for i in range(200):
     else:
         box.change_visual(rgba=[0, 1, 0, 0.5])
 print(t_collision)
+m.step_simulation(steps=50, realtime=True)

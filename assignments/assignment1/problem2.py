@@ -29,6 +29,17 @@ def apply_transform(pos, orient, d, euler):
     return np.zeros(3), np.eye(3)
     # ------ Student answer above -------
 
+def wait_for_enter():
+    # NOTE: Press enter to continue to next angles
+    print('Press enter in the simulator to continue to the next angle set')
+    keys = m.get_keys()
+    while True:
+        keys = m.get_keys()
+        if 'return' in keys:
+            break
+        m.step_simulation(realtime=True)
+    m.step_simulation(steps=50, realtime=True)
+
 # Test cases for rotations
 # T_1, T2, T3
 d_1 = np.array([0.1, -0.2, 0.05])
@@ -49,7 +60,9 @@ print('-'*20)
 print('final position:', pos_final)
 print('final orientation:', orient_final)
 print('-'*20)
-input("Press enter to continue...")
+
+# NOTE: Press enter to continue to next angles
+wait_for_enter()
 
 # 2: T2, T1, T3
 pos1, orient1 = apply_transform(pos, orient, d_2, euler_2)
@@ -61,7 +74,9 @@ print('-'*20)
 print('final position:', pos_final)
 print('final orientation:', orient_final)
 print('-'*20)
-input("Press enter to continue...")
+
+# NOTE: Press enter to continue to next angles
+wait_for_enter()
 
 # 3: T3, T2, T1
 pos1, orient1 = apply_transform(pos, orient, d_3, euler_3)
@@ -73,5 +88,7 @@ print('-'*20)
 print('final position:', pos_final)
 print('final orientation:', orient_final)
 print('-'*20)
-input("Press enter to continue...")
+
+# NOTE: Press enter to continue to next angles
+wait_for_enter()
 

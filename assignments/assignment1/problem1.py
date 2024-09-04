@@ -93,5 +93,12 @@ for alpha, beta, gamma in zip([20, -25, 0], [45, 5, 135], [10, 90, -72]):
     point_r.set_base_pos_orient(x_new_r)
     point_aa.set_base_pos_orient(x_new_aa)
 
-    m.step_simulation(realtime=True)
-    input("Press enter to continue...")
+    # NOTE: Press enter to continue to next angles
+    print('Press enter in the simulator to continue to the next angle set')
+    keys = m.get_keys()
+    while True:
+        keys = m.get_keys()
+        if 'return' in keys:
+            break
+        m.step_simulation(realtime=True)
+    m.step_simulation(steps=50, realtime=True)
