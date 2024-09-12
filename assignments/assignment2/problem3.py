@@ -26,7 +26,7 @@ def line_intersection(p1, p2, q1, q2):
 # Create environment and ground plane
 env = m.Env()
 # ground = m.Ground()
-env.set_gui_camera(look_at_pos=[0, 0, 0], yaw=30)
+env.set_gui_camera(look_at_pos=[0, 0.4, 0.25])
 
 fbl = m.URDF(filename=os.path.join(m.directory, 'fourbarlinkage.urdf'),
              static=True, position=[0, 0, 0.3], orientation=[0, 0, 0, 1])
@@ -99,5 +99,6 @@ for i in range(10000):
     m.step_simulation(realtime=True)
 
     if i == 500 or i == 600 or i == 700:
-        print('Please save screenshot and include in writeup')
+        print('--------------------------------------------------------------')
+        print(f'Frame {i}: Please save screenshot and include in writeup')
         input("Press Enter to continue...")
