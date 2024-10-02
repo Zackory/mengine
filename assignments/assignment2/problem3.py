@@ -6,9 +6,10 @@ import numpy as np
 
 def invertQ(q):
     """
-    Invert a quaternion
+    Invert a quaternion, this function is optional and you could use it in line_intersection if you want
     """
     # ------ TODO Student answer below -------
+    # NOTE: Optional, you do not need to use this function
     return np.array([0, 0, 0, 1])
     # ------ Student answer above -------
 
@@ -76,11 +77,10 @@ for i in range(10000):
             if intersect_point is not None:
                 m.Shape(m.Sphere(radius=0.005), static=True,
                         position=intersect_point, collision=False, rgba=[1, 0, 0, 1])
-                # ------ TODO Student answer below -------
                 # draw moving centrode
                 # get intersection point in local frame w.r.t. link 4
-                local_intersect_point = np.array([0, 0, 0])
-                # ------ Student answer above -------
+                p, _ = fbl.global_to_local_coordinate_frame(intersect_point, link=3)
+                local_intersect_point = np.array(p)
 
                 intersect_points_local.append(local_intersect_point)
                 # get global coordinates of intersection point
@@ -90,11 +90,9 @@ for i in range(10000):
                     intersect_point_local_body)
 
         # redraw intersection points of moving centrode
-        # ------ TODO Student answer below -------
-        # Hint: You can use Body.set_base_pos_orient(xyz) to update a body's position
         for body, point_local in zip(intersect_points_local_bodies, intersect_points_local):
-            body.set_base_pos_orient([0, 0, 0])
-        # ------ Student answer above -------
+            p, _ = fbl.local_to_global_coordinate_frame(point_local, link=3)
+            body.set_base_pos_orient(p)
 
     m.step_simulation(realtime=True)
 
