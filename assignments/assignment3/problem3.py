@@ -70,17 +70,30 @@ def random_sample_config():
 
 
 def rrt_connect(init, goal, max_iterations=100):
-    """
-    Returns a path from init to goal, using rrt_connect method.
+    """Returns a path from init to goal, using rrt_connect method.
     reference: http://www.kuffner.org/james/papers/kuffner_icra2000.pdf
-    1.Initialize two trees, `Ta` and `Tb`, from the start and goal configurations. 
-    2.At each iteration, sample a random configuration `qrand` and attempt to extend `Ta` towards it. 
-    3. If successful, try to connect `Tb` to the new node. If connected, return the path. 
-    4. Swap the trees after each iteration and continue extending and connecting. 
-    5. Terminate if a path is found or after exhausting the iteration limit, returning failure otherwise. 
     """
     """TODO: Your Answer HERE"""
     raise NotImplementedError
+
+    # RRT-connect steps, as detailed in the Kuffner and LaValle, 2000 paper
+    # 1. Initialize two trees, T_a and T_b, with Nodes representing the start and goal configurations respectively
+
+    # At each iteration for k iterations:
+
+        # 2. Sample a random configuration, qrand, and attempt to extend T_a towards it to yield a new node
+
+        # If successful:
+
+            # 3. Try to connect `Tb` to the new node, yielding a second new node
+
+            # If successful:
+
+                # 4: Return the computed path
+
+        # 6. Swap trees T_a and T_b after each iteration
+
+    # 7. Return None if no path is found within the iteration limit
     return None
     """TODO: Your Answer END"""
 
