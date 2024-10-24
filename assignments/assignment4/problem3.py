@@ -11,6 +11,16 @@ import numpy as np
 import open3d as o3d
 import mengine as m
 
+def load_object(idx, obj_position):
+    obj_names = ["bowl", "cheezit", "spam", "mustard", "tomato_soup_can", "mug"]
+
+    obj_name = obj_names[idx]
+    if obj_name == "bowl":
+        object = m.URDF(filename='./bowl/object.urdf', static=False, position=obj_position, orientation=[0, 0, 0, 1])
+    else:
+        object = m.Shape(m.Mesh(filename=os.path.join(m.directory, 'ycb', f'{obj_name}.obj'), scale=[1, 1, 1]), static=False, mass=1.0, position=obj_position, orientation=[0, 0, 0, 1], rgba=None, visual=True, collision=True)
+    return object
+
 
 def sample_grasp_ee_poses(obj, num_samples=100) -> List[Tuple[np.ndarray, np.ndarray]]:
     """
@@ -59,7 +69,7 @@ def get_antipodal_score(robot_joint_angles, pc, normals) -> float:
 
     # ------ TODO Student answer below -------
     # Hint: example code for computing an antipodal grasp score can be found in lecture12_antipodal.py
-    
+
     raise NotImplementedError
     # ------ Student answer above -------
 
@@ -157,12 +167,18 @@ ground = m.Ground()
 table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static=True, position=[0, 0, 0],
                orientation=[0, 0, 0, 1])
 
-# Create bowl
-bowl = m.URDF(filename='./bowl/object.urdf', static=False, position=[0, 0, 0.8], orientation=[0, 0, 0, 1])
-bowl.set_whole_body_frictions(lateral_friction=2000, spinning_friction=2000, rolling_friction=0)
+# Create object
+# ------ TODO: Experiment with different objects ------
+# object options: 0 - bowl, 1 - cheezit, 2 - spam, 3 - mustard, 4 - tomato_soup_can, 5 - mug
+# by default, start with idx = 0 for the bowl
+obj_idx = 0
+object = load_object(obj_idx, [0, 0, 0.8])
+# --------------- End of experimenting ----------------
+
+object.set_whole_body_frictions(lateral_friction=2000, spinning_friction=2000, rolling_friction=0)
 m.step_simulation(50)
 
-obstacles = [table, bowl]
+obstacles = [table, object]
 
 # Create Panda manipulator
 robot = m.Robot.Panda(position=[0.5, 0, 0.76])
@@ -184,7 +200,7 @@ gripper_line_vector = robot.local_to_global_coordinate_frame([0, 0.2, 0], link=r
 
 for _ in range(3):
     # Find best grasp
-    robot_joint_angles = find_best_grasp(bowl)
+    robot_joint_angles = find_best_grasp(object)
 
     # MOVETO bowl
     moveto(joint_angles=robot_joint_angles)
