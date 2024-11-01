@@ -41,11 +41,16 @@ def reset():
 
     radius_contact_spheres = 0.02
 
-    # ------ TODO Student answer below -------
-    # Add contact point(s) to fully constrain the object in 3D
-    #   contact points can be added using the `add_contact_point()` function
+    # CHANGE NOTE: Previously, this question required a student answer:
+    #              These points are now provided! You do not need to implement anything extra for this function!
+    s1 = add_contact_point([-0.1 - radius_contact_spheres, 0, 0])
+    s2 = add_contact_point([0.06, 0.08 + radius_contact_spheres, 0])
+    s3 = add_contact_point([0.1 + radius_contact_spheres, 0.05, 0.0])
+    s4 = add_contact_point([0.0, -0.08 - radius_contact_spheres, 0.0])
+    s5 = add_contact_point([0.0, 0.0, -0.05 - radius_contact_spheres])
+    s6 = add_contact_point([-0.06, 0.05, 0.05 + radius_contact_spheres])
+    s7 = add_contact_point([0.06, -0.05, 0.05 + radius_contact_spheres])
 
-    # ------ Student answer above -------
 
 def get_contact_screw(contact_location, contact_normal):
     """Returns the contact screw in screw coordinates given a contact location and contact_normal
