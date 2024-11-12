@@ -14,33 +14,47 @@ env.set_gui_camera(look_at_pos=[0, 0, 0.95])
 orient = m.get_quaternion([np.pi, 0, 0])
 
 
-def sample_spherical(npoints, ndim=3):
-    # write your code here
-    #
-    #
-    return points
+def sample_spherical(npoints, r=0.1):
+
+    points = []
+    normals = []
+    for i in range(npoints):
+        pt = np.random.randn(3)
+        pt = pt / np.linalg.norm(pt, 2) * r
+        points.append(pt)
+        normals.append(-pt / r)
+
+    return np.array(points), np.array(normals)
 
 
-def sample_cube(npoints, ndim=3):
-    # write your code here
-    #
-    #
+def sample_cube(npoints, l=0.2):
 
-    return points
+    points = []
+    normals = []
+    for i in range(npoints):
+        pt = np.random.rand(3) * l - l / 2
+        d = np.random.randint(3)
+        s = np.random.randint(2)
+        pt[d] = l / 2 if s else -l / 2
+        points.append(pt)
+
+        n = np.zeros(3)
+        n[d] = -1 if s else 1
+        normals.append(n)
+
+    return np.array(points), np.array(normals)
 
 
 def find_force_closure_grasp(testobj, mu) -> tuple:
 
-    # write your code here
-    #
-    #
+    # ------ TODO: Student answer below -------
+
+    # ------ Student answer above -------
 
     return contact_positions, contact_normals
 
 
 # Reset simulation env
-
-
 def reset(positions, table_friction=0.5, obj_mass=100, obj_friction=0.5, finger_mass=10.0, obj_type='sphere'):
     # Create environment and ground plane
     env.reset()
@@ -75,8 +89,6 @@ def reset(positions, table_friction=0.5, obj_mass=100, obj_friction=0.5, finger_
 
 
 # visualize force closure grasps in simulation
-
-
 def visualize_grasps(grasps):
     for g in grasps:
         # Reset simulator
@@ -107,7 +119,7 @@ def visualize_grasps(grasps):
 
 def main(testobj, friction=True):
 
-    # parameters to play with
+    # ------ TODO: Parameters to experiment with ------
     obj_mass = 100
     obj_friction = 0.5
     finger_mass = 10.0
@@ -116,6 +128,7 @@ def main(testobj, friction=True):
         mu = 0.5
     else:
         mu = 0.0
+    # -------------- End of experimenting -------------
 
     contact_positions, contact_normals = find_force_closure_grasp(
         testobj, mu)
@@ -123,9 +136,6 @@ def main(testobj, friction=True):
     # spawn fingers slightly away from the obj
     grasps = [dict(contact_positions=1.1*contact_positions, contact_normals=contact_normals,
                    table_friction=0.5, obj_type=testobj, obj_mass=obj_mass, obj_friction=obj_friction, force_magnitude=force_magnitude, finger_mass=finger_mass)]
-
-    # append grasps with other parameters here:
-    # grasps.append()
 
     visualize_grasps(grasps)
 
@@ -145,7 +155,6 @@ if __name__ == "__main__":
         testobj = args.testobj
         friction = args.friction
     except:
-        print("No testobj specified. Using sphere as default.")
-        testobj = 'sphere'
+        print("No testobj specified. Using sphere and frictionless as default.")
         friction = False
     main(testobj, friction)
