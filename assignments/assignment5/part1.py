@@ -3,8 +3,29 @@ import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy
+from scipy.spatial.transform import Rotation
 from scipy import optimize
+
+
+def compute_rot_mat(n):
+    """
+    Calculate a rotation matrix R that rotates (0, 0, 1) to n.
+    R @ [0, 0, 1] = n
+    """
+    norm_n = n / np.linalg.norm(n, 2)
+    x = np.array([1, 0, 0])
+
+    # rotation axis t
+    t = np.cross(x, norm_n)
+    if np.linalg.norm(t, 2) < 1e-10:
+        t = np.array([0, 1, 0])
+    else:
+        t = t / np.linalg.norm(t, 2)
+
+    # rotation angle theta
+    theta = np.arccos(norm_n @ x)
+
+    return Rotation.from_rotvec(theta * t).as_matrix()
 
 
 ###########################################
@@ -94,9 +115,6 @@ def main(testcase):
     # normalized screw coordinates of contact normals
     wrench = contact_screw_3d(contact_points, contact_normals)
 
-    # draw contact screws
-    draw_contact_screw(contact_points, wrench)
-
     # force closure test (1: true, 0: false)
     is_FC, z_max = is_force_closure(wrench)
 
@@ -108,9 +126,6 @@ def main(testcase):
 
     # normalized screw coordinates of contact normals
     wrench_friction = contact_screw_3d(contact_points_FC, contact_normals_FC)
-
-    # draw contact screw
-    draw_contact_screw(contact_points_FC, contact_normals_FC, n_friction_cone)
 
     # force closure test (1: true, 0: false)
     is_FC_friction, z_max_friction = is_force_closure(wrench_friction)
