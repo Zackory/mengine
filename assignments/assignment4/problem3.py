@@ -68,7 +68,7 @@ def get_antipodal_score(robot_joint_angles, pc, normals) -> float:
     robot.control(robot_joint_angles, set_instantly=True)
 
     # ------ TODO Student answer below -------
-    # Hint: example code for computing an antipodal grasp score can be found in lecture12_antipodal.py
+    # Hint: example code for computing an antipodal grasp score can be found in lecture13_antipodal.py
 
     raise NotImplementedError
     # ------ Student answer above -------
