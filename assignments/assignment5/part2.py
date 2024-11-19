@@ -62,7 +62,7 @@ def reset(positions, table_friction=0.5, obj_mass=100, obj_friction=0.5, finger_
 
     # Create table and cube
     table = m.URDF(filename=os.path.join(m.directory, 'table', 'table.urdf'), static=True, position=[
-                   0, 0, 0], orientation=[0, 0, 0, 1], maximal_coordinates=True, scale=1.0)
+                   0, 0, 0], orientation=[0, 0, 0, 1], maximal_coordinates=True)
     table.set_whole_body_frictions(
         lateral_friction=table_friction, spinning_friction=0, rolling_friction=0)
     if obj_type == 'sphere':
