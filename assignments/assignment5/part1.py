@@ -9,7 +9,7 @@ from scipy import optimize
 
 def compute_rot_mat(n):
     """
-    Calculate a rotation matrix R that rotates (0, 0, 1) to n.
+    Calculate a rotation matrix R that rotates (1, 0, 0) to n
     R @ [0, 0, 1] = n
     """
     norm_n = n / np.linalg.norm(n, 2)
@@ -49,8 +49,8 @@ def contact_screw_3d(contact_points: np.ndarray, contact_normals: np.ndarray) ->
 # contact_normals: a set of inward-pointing directions of contact normals [[nix; niy; niz] ...]; Nx3 matrix
 # mu: the coefficient of (static) friction; scalar
 # n_fc : the number of side facets of a linearized polyhedral friction cone; scalar
-# contact_points_FC: a set of contact point positions of edges of polyhedral friction cones [[pijx; pijy; pijz] ...]; Nx3 matrix
-# contact_normals_FC: a set of inward-pointing directions of edges of polyhedral friction cones [[sijx; sijy; sijz] ...]; Nx3 matrix
+# contact_points_FC: a set of contact point positions of edges of polyhedral friction cones [[pijx; pijy; pijz] ...]; (N*n_fc) x 3 matrix
+# contact_normals_FC: a set of inward-pointing directions of edges of polyhedral friction cones [[sijx; sijy; sijz] ...]; (N*n_fc) x 3 matrix
 #########################################################################
 
 
