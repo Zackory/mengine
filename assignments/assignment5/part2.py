@@ -93,7 +93,7 @@ def visualize_grasps(grasps):
     for g in grasps:
         # Reset simulator
         fingers, obj = reset(g['contact_positions'],  g['table_friction'],
-                             g['obj_mass'], g['obj_friction'], g['finger_mass'])
+                             g['obj_mass'], g['obj_friction'], g['finger_mass'], g['obj_type'])
         for i in range(100):
 
             for idx, finger in enumerate(fingers):
@@ -124,11 +124,14 @@ def main(testobj, friction=True):
     obj_friction = 0.5
     finger_mass = 10.0
     force_magnitude = 1000
+
+    # Also, make sure to play around with changing the friction param passed to this function (True vs. False)!
+
+    # -------------- End of experimenting -------------
     if friction:
         mu = 0.5
     else:
         mu = 0.0
-    # -------------- End of experimenting -------------
 
     contact_positions, contact_normals = find_force_closure_grasp(
         testobj, mu)
@@ -144,7 +147,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description='Parse different test objects.')
-    parser.add_argument('testobject', type=str,
+    parser.add_argument('testobj', type=str,
 
                         help='Call file either with argument \'sphere\' or \'cube\'.')
     parser.add_argument('friction', type=bool,
