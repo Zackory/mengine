@@ -8,6 +8,7 @@ env = m.Env()
 
 def test_impact(restitution=0.5, mu=0.5, desired_distance=0.5, box_mass=1.0):
     print('-'*20)
+    print('restitution=%.2f, mu=%.2f, desired_distance=%.2f, box_mass=%.2f' % (restitution, mu, desired_distance, box_mass))
     # Reset environment and ground plane
     env.reset()
     ground = m.Ground()
