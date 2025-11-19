@@ -150,9 +150,9 @@ if __name__ == "__main__":
     parser.add_argument('testobj', type=str,
 
                         help='Call file either with argument \'sphere\' or \'cube\'.')
-    parser.add_argument('friction', type=bool,
+    parser.add_argument('--friction', action='store_true',
 
-                        help='Frictionless => False , frictional=>True')
+                        help='omit => frictionless, friction=>friction')
     try:
         args = parser.parse_args()
         testobj = args.testobj
