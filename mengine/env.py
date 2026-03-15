@@ -11,6 +11,7 @@ from .bodies.jaco import Jaco
 from .bodies.baxter import Baxter
 from .bodies.pr2 import PR2
 from .bodies.stretch import Stretch
+from .bodies.stretch3 import Stretch3
 from .bodies.kinova_gen3 import KinovaGen3
 
 envir = None
@@ -121,6 +122,11 @@ class Robot:
             super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
 
     class Stretch(Stretch):
+        def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=False, env=None):
+            env = env if env is not None else envir
+            super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
+
+    class Stretch3(Stretch3):
         def __init__(self, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True, env=None):
             env = env if env is not None else envir
             super().__init__(env, position, get_quaternion(orientation), controllable_joints, fixed_base)
