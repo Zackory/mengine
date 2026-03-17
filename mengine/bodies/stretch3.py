@@ -1,24 +1,38 @@
-import os
+import os, sys
 import pybullet as p
 from .robot import Robot
 import numpy as np
 
+from contextlib import contextmanager
+
+@contextmanager
+def suppress_stdout():
+    fd = sys.stdout.fileno()
+    with os.fdopen(os.dup(fd), "w") as old_stdout:
+        with open(os.devnull, "w") as devnull:
+            os.dup2(devnull.fileno(), fd)
+            try:
+                yield
+            finally:
+                os.dup2(old_stdout.fileno(), fd)
+
 class Stretch3(Robot):
     def __init__(self, env, position=[0, 0, 0], orientation=[0, 0, 0, 1], controllable_joints=None, fixed_base=True):
-        controllable_joints = [0, 1, 4, 6, 7, 8, 9, 10, 12, 13] if controllable_joints is None else controllable_joints
+        controllable_joints = [0, 1, 4, 6, 7, 8, 9, 10, 12, 13, 26, 29] if controllable_joints is None else controllable_joints
         end_effector = 33 # Used to get the pose of the end effector
         gripper_joints = [26, 29] # Gripper actuated joints
-        body = p.loadURDF(os.path.join(env.directory, 'stretch3', 'stretch_description_SE3_eoa_wrist_dw3_tool_sg3.urdf'), useFixedBase=False, basePosition=position, baseOrientation=orientation, physicsClientId=env.id)
+        with suppress_stdout():
+            body = p.loadURDF(os.path.join(env.directory, 'stretch3', 'stretch_description_SE3_eoa_wrist_dw3_tool_sg3.urdf'), useFixedBase=False, basePosition=position, baseOrientation=orientation, physicsClientId=env.id)
         super().__init__(body, env, controllable_joints, end_effector, gripper_joints)
 
         # Fix mass
         for link in self.all_joints:
             if self.get_link_mass(link) > 0:
                 self.set_mass(link, 0.01)
-        # self.set_mass(self.base, 1000)
-        self.set_mass(0, 100)
-        self.set_mass(1, 100)
-        self.set_mass(2, 100)
+        # self.set_mass(self.base, 200)
+        self.set_mass(0, 200)
+        self.set_mass(1, 200)
+        self.set_mass(2, 200)
 
         # Increase friction of wheels and decrease friction of the robot base since it touches the ground
         self.set_frictions([0, 1], lateral_friction=10, spinning_friction=0, rolling_friction=0)

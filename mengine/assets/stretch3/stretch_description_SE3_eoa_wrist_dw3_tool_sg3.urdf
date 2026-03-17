@@ -1035,7 +1035,7 @@
     <parent link="link_gripper_s3_body"/>
     <child link="link_gripper_finger_right"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="0" upper="0" velocity="0"/>
+    <limit effort="0" lower="0" upper="0.5" velocity="0"/>
   </joint>
   <link name="link_gripper_fingertip_right">
     <inertial>
@@ -1120,7 +1120,7 @@
     <parent link="link_gripper_s3_body"/>
     <child link="link_gripper_finger_left"/>
     <axis xyz="0 0 -1"/>
-    <limit effort="0" lower="0" upper="0" velocity="0"/>
+    <limit effort="0" lower="0" upper="0.5" velocity="0"/>
   </joint>
   <link name="link_gripper_fingertip_left">
     <inertial>
